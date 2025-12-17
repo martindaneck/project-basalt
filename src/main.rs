@@ -1,6 +1,8 @@
 use glfw::{Action, Context, Key};
-use std::ffi::CString;
 use std::ptr;
+
+mod renderer;
+use renderer::shader::Shader;
 
 fn main() {
     let mut glfw = glfw::init(glfw::fail_on_errors).unwrap();
@@ -61,42 +63,10 @@ fn main() {
         gl::EnableVertexAttribArray(0);
     }
 
-    let vertex_src = CString::new(
-        "#version 460 core
-        layout (location = 0) in vec3 aPos;
-        void main() {
-            gl_Position = vec4(aPos, 1.0);
-        }"
-    ).unwrap();
-
-    let fragment_src = CString::new(
-        "#version 460 core
-        out vec4 FragColor;
-        void main() {
-            FragColor = vec4(1.0, 0.5, 0.2, 1.0);
-        }"
-    ).unwrap();
-
-    let program: u32;
-
-    unsafe {
-        let vs = gl::CreateShader(gl::VERTEX_SHADER);
-        gl::ShaderSource(vs, 1, &vertex_src.as_ptr(), ptr::null());
-        gl::CompileShader(vs);
-
-        let fs = gl::CreateShader(gl::FRAGMENT_SHADER);
-        gl::ShaderSource(fs, 1, &fragment_src.as_ptr(), ptr::null());
-        gl::CompileShader(fs);
-
-        program = gl::CreateProgram();
-        gl::AttachShader(program, vs);
-        gl::AttachShader(program, fs);
-        gl::LinkProgram(program);
-
-        gl::DeleteShader(vs);
-        gl::DeleteShader(fs);
-    }
-
+    let shader = Shader::from_files(
+        "src/shaders/default.vertex.glsl",
+        "src/shaders/default.fragment.glsl",
+    );
 
 
     while !window.should_close() {
@@ -112,7 +82,7 @@ fn main() {
             gl::ClearColor(0.1, 0.1, 0.1, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT);
 
-            gl::UseProgram(program);
+            shader.bind();
             gl::BindVertexArray(vao);
             gl::DrawArrays(gl::TRIANGLES, 0, 3);
         }
