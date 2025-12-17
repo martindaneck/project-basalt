@@ -1,8 +1,10 @@
+#![allow(dead_code, unused)]
+
 use glfw::{Action, Context, Key};
-use std::ptr;
 
 mod renderer;
 use renderer::shader::Shader;
+use renderer::mesh::Mesh;
 
 fn main() {
     let mut glfw = glfw::init(glfw::fail_on_errors).unwrap();
@@ -29,45 +31,13 @@ fn main() {
         gl::Viewport(0, 0, 800, 600);
     }
 
-    let vertices: [f32; 9] = [
-        -0.5, -0.5, 0.0,
-        0.5, -0.5, 0.0,
-        0.0,  0.5, 0.0,
-    ];
-
-    let mut vao: u32 = 0;
-    let mut vbo: u32 = 0;
-
-    unsafe {
-        gl::GenVertexArrays(1, &mut vao);
-        gl::GenBuffers(1, &mut vbo);
-
-        gl::BindVertexArray(vao);
-
-        gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-        gl::BufferData(
-            gl::ARRAY_BUFFER,
-            (vertices.len() * std::mem::size_of::<f32>()) as isize,
-            vertices.as_ptr() as *const _,
-            gl::STATIC_DRAW,
-        );
-
-        gl::VertexAttribPointer(
-            0,
-            3,
-            gl::FLOAT,
-            gl::FALSE,
-            (3 * std::mem::size_of::<f32>()) as i32,
-            ptr::null(),
-        );
-        gl::EnableVertexAttribArray(0);
-    }
 
     let shader = Shader::from_files(
-        "src/shaders/default.vertex.glsl",
-        "src/shaders/default.fragment.glsl",
+        "assets/shaders/default.vertex.glsl",
+        "assets/shaders/default.fragment.glsl",
     );
 
+    let triangle = Mesh::triangle();
 
     while !window.should_close() {
         glfw.poll_events();
@@ -81,11 +51,11 @@ fn main() {
         unsafe {
             gl::ClearColor(0.1, 0.1, 0.1, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT);
-
-            shader.bind();
-            gl::BindVertexArray(vao);
-            gl::DrawArrays(gl::TRIANGLES, 0, 3);
         }
+            shader.bind();
+            triangle.draw();
+
+        
 
 
         window.swap_buffers();
