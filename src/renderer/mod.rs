@@ -3,7 +3,9 @@ pub mod buffer;
 pub mod vao;
 pub mod mesh;
 pub mod app;
+pub mod camera;
 
 pub use buffer::Buffer;
 pub use vao::VertexArray;
 pub use app::App;
+pub use camera::{Camera, CameraMovement};

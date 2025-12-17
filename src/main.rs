@@ -8,7 +8,7 @@ use renderer::mesh::Mesh;
 use renderer::app::App;
 
 fn main() {
-    let mut app = App::new(800, 600, "OpenGL Triangle");
+    let mut app = App::new(1920, 1080, "OpenGL Triangle");
 
 
     let shader = Shader::from_files(
@@ -20,7 +20,7 @@ fn main() {
 
     while app.is_running() {
         app.begin_frame();
-        
+        app.update_shader_camera(&shader);
 
         shader.bind();
         triangle.draw();

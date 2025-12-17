@@ -1,5 +1,9 @@
 use glfw::{Action, Context, Key};
 
+use crate::renderer::shader;
+
+use super::{Camera, CameraMovement};
+
 pub struct App {
     glfw: glfw::Glfw,
     window: glfw::PWindow,
@@ -8,6 +12,14 @@ pub struct App {
     width: i32,
     height: i32,
     resized: bool,
+
+    camera: Camera,
+    last_mouse_x: f64,
+    last_mouse_y: f64,
+    first_mouse: bool,
+    last_frame_time: f64,
+
+    mouse_locked: bool,
 }
 
 impl App {
@@ -27,6 +39,10 @@ impl App {
         window.set_key_polling(true);
         window.set_framebuffer_size_polling(true);
 
+        // cursor
+        window.set_cursor_mode(glfw::CursorMode::Disabled);
+        window.set_cursor_pos_polling(true);
+
         gl::load_with(|s| {
             window.get_proc_address(s)
                 .map(|f| f as *const _)
@@ -39,7 +55,16 @@ impl App {
             gl::Viewport(0, 0, width as i32, height as i32);
         }
 
-        App { glfw, window, events, width, height, resized: false }
+        let last_frame_time = glfw.get_time();
+
+        App { glfw, window, events, width, height, resized: false,
+            camera: Camera::new(glam::Vec3::new(0.0, 0.0, 3.0), glam::Vec3::Y, -90.0, 0.0),
+            last_mouse_x: (width / 2) as f64,
+            last_mouse_y: (height / 2) as f64,
+            first_mouse: true,
+            last_frame_time,
+            mouse_locked: true,
+        }
     }
 
     pub fn is_running(&self) -> bool {
@@ -47,6 +72,12 @@ impl App {
     }
 
     pub fn begin_frame(&mut self) {
+        // delta time
+        let current_frame_time = self.glfw.get_time();
+        let delta_time = current_frame_time - self.last_frame_time;
+        self.last_frame_time = current_frame_time;
+
+        // poll events
         self.glfw.poll_events();
 
         for (_, event) in glfw::flush_messages(&self.events) {
@@ -65,11 +96,50 @@ impl App {
                     self.window.set_should_close(true);
                 }
 
+                glfw::WindowEvent::Key(Key::E, _, Action::Press, _) => {
+                    self.mouse_locked = !self.mouse_locked;
+                    if self.mouse_locked {
+                        self.window.set_cursor_mode(glfw::CursorMode::Disabled);
+                    } else {
+                        self.window.set_cursor_mode(glfw::CursorMode::Normal);
+                    };
+                    self.window.set_cursor_mode(if self.mouse_locked { glfw::CursorMode::Disabled } else { glfw::CursorMode::Normal });
+                    if !self.mouse_locked {
+                        self.first_mouse = true;
+                    }
+                }
+
                 _ => {}
             }
         }
 
+        // keyboard input
+        let mut speed: f32 = 1.0;
+        if self.window.get_key(Key::LeftShift) == Action::Press { speed *= 2.0; }
+        if self.window.get_key(Key::W) == Action::Press { self.camera.process_keyboard(CameraMovement::Forward, delta_time as f32 * speed); }
+        if self.window.get_key(Key::S) == Action::Press { self.camera.process_keyboard(CameraMovement::Backward, delta_time as f32 * speed); }
+        if self.window.get_key(Key::A) == Action::Press { self.camera.process_keyboard(CameraMovement::Left, delta_time as f32 * speed); }
+        if self.window.get_key(Key::D) == Action::Press { self.camera.process_keyboard(CameraMovement::Right, delta_time as f32 * speed); }
+        if self.window.get_key(Key::Space) == Action::Press { self.camera.process_keyboard(CameraMovement::Up, delta_time as f32 * speed); }
+        if self.window.get_key(Key::LeftControl) == Action::Press { self.camera.process_keyboard(CameraMovement::Down, delta_time as f32); }
 
+        // mouse input
+        if self.mouse_locked {
+            let (mouse_x, mouse_y) = self.window.get_cursor_pos();
+            if self.first_mouse {
+                self.last_mouse_x = mouse_x;
+                self.last_mouse_y = mouse_y;
+                self.first_mouse = false;
+            }
+            let dx = (mouse_x - self.last_mouse_x) as f32;
+            let dy = (self.last_mouse_y - mouse_y) as f32;
+            self.last_mouse_x = mouse_x;
+            self.last_mouse_y = mouse_y;
+            self.camera.process_mouse_movement(dx, dy, 0.2); 
+        }
+          
+
+        // openGL stuff: clear screen
         unsafe {
             gl::ClearColor(0.1, 0.1, 0.1, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT);
@@ -90,6 +160,15 @@ impl App {
 
     pub fn clear_resized_flag(&mut self) {
         self.resized = false;
+    }
+
+    pub fn update_shader_camera(&self, shader: &shader::Shader) {
+        let aspect_ratio = self.width as f32 / self.height as f32;
+        let view = self.camera.get_view_matrix();
+        let projection = self.camera.get_projection_matrix(aspect_ratio);
+
+        shader.set_mat4("view", &view);
+        shader.set_mat4("projection", &projection);
     }
 
 }

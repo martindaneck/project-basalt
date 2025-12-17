@@ -71,6 +71,58 @@ impl Shader {
             gl::UseProgram(self.id);
         }
     }
+
+    // uniform setters
+    pub fn set_mat4(&self, name: &str, mat: &glam::Mat4) {
+        let cname = CString::new(name).expect("Failed to convert to CString");
+        unsafe {
+            let location = gl::GetUniformLocation(self.id, cname.as_ptr());
+            if location == -1 {
+                eprintln!("Warning: uniform '{}' not found in shader", name);
+            } else {
+                gl::UniformMatrix4fv(location, 1, gl::FALSE, mat.to_cols_array().as_ptr());
+            }
+        }
+    }
+
+    pub fn set_vec3(&self, name: &str, vec: &glam::Vec3) {
+        let cname = CString::new(name).expect("Failed to convert to CString");
+        unsafe {
+            let location = gl::GetUniformLocation(self.id, cname.as_ptr());
+            if location == -1 {
+                eprintln!("Warning: uniform '{}' not found in shader", name);
+            } else {
+                gl::Uniform3fv(location, 1, vec.to_array().as_ptr());
+            }
+        }
+    }
+
+    pub fn set_float(&self, name: &str, value: f32) {
+        let cname = CString::new(name).expect("Failed to convert to CString");
+        unsafe {
+            let location = gl::GetUniformLocation(self.id, cname.as_ptr());
+            if location == -1 {
+                eprintln!("Warning: uniform '{}' not found in shader", name);
+            } else {
+                gl::Uniform1f(location, value);
+            }
+        }
+    }
+
+    pub fn set_int(&self, name: &str, value: i32) {
+        let cname = CString::new(name).expect("Failed to convert to CString");
+        unsafe {
+            let location = gl::GetUniformLocation(self.id, cname.as_ptr());
+            if location == -1 {
+                eprintln!("Warning: uniform '{}' not found in shader", name);
+            } else {
+                gl::Uniform1i(location, value);
+            }
+        }
+    }
+
+    
+
 }
 
 impl Drop for Shader {
