@@ -1,6 +1,12 @@
 #version 460 core
 out vec4 FragColor;
 
+in vec2 TexCoords;
+
+uniform sampler2D albedo;
+uniform sampler2D normal;
+uniform sampler2D orm;
+
 void main() {
-    FragColor = vec4(1.0, 0.5, 0.2, 1.0);
+    FragColor = texture(albedo, TexCoords);
 }

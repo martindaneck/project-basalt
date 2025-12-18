@@ -16,7 +16,9 @@ fn main() {
         "assets/shaders/default.fragment.glsl",
     );
 
-    let triangle = Mesh::triangle();
+    let triangle = Mesh::triangle(Some("assets/textures/brickwall_texture/albedo.png"),
+                                  None,
+                                  None);
 
     while app.is_running() {
         app.begin_frame();

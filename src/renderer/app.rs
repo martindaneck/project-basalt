@@ -1,8 +1,6 @@
 use glfw::{Action, Context, Key};
 
-use crate::renderer::shader;
-
-use super::{Camera, CameraMovement};
+use super::{Camera, CameraMovement, shader};
 
 pub struct App {
     glfw: glfw::Glfw,

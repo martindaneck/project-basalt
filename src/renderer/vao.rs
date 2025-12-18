@@ -30,6 +30,12 @@ impl VertexArray {
         }
     }
 
+    pub fn set_element_buffer(&self, buffer: &super::buffer::Buffer) {
+        unsafe {
+            gl::VertexArrayElementBuffer(self.id, buffer.id);
+        }
+    }
+
     pub fn enable_attribute(&self, attrib_index: u32, size: i32, binding_index: u32, offset: usize) {
         unsafe {
             gl::EnableVertexArrayAttrib(self.id, attrib_index);
@@ -42,6 +48,12 @@ impl VertexArray {
                 offset as u32,
             );
             gl::VertexArrayAttribBinding(self.id, attrib_index, binding_index);
+        }
+    }
+
+    pub fn bind(&self) {
+        unsafe {
+            gl::BindVertexArray(self.id);
         }
     }
 }
