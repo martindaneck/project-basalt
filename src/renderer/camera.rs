@@ -56,11 +56,15 @@ impl Camera {
         let velocity = 3.0 * delta_time;
         let mut front = self.front;
         front.y = 0.0; // Lock y movement
+        front = front.normalize();
+        let mut right = self.right;
+        right.y = 0.0; // Lock y movement
+        right = right.normalize();
         match direction {
             CameraMovement::Forward => self.position += front * velocity,
             CameraMovement::Backward => self.position -= front * velocity,
-            CameraMovement::Left => self.position -= self.right * velocity,
-            CameraMovement::Right => self.position += self.right * velocity,
+            CameraMovement::Left => self.position -= right * velocity,
+            CameraMovement::Right => self.position += right * velocity,
             CameraMovement::Up => self.position += self.world_up * velocity,
             CameraMovement::Down => self.position -= self.world_up * velocity,
         }
