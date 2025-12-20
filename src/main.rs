@@ -6,9 +6,9 @@ use glam::{self, Mat4};
 mod renderer;
 use renderer::shader::Shader;
 use renderer::mesh::Mesh;
-use renderer::app::App;
-
-use crate::renderer::model::Model;
+use renderer::model::Model;
+mod app;
+use app::app::App;
 
 fn main() {
     let mut app = App::new(1920, 1080, "OpenGL Triangle");

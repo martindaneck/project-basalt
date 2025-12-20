@@ -1,6 +1,6 @@
 use glfw::{Action, Context, Key};
 
-use super::{Camera, CameraMovement, shader};
+use crate::renderer::{Camera, CameraMovement, shader};
 
 pub struct App {
     glfw: glfw::Glfw,
@@ -21,6 +21,7 @@ pub struct App {
 }
 
 impl App {
+    // Create a new App instance
     pub fn new(width: i32, height: i32, title: &str) -> Self {
         let mut glfw = glfw::init(glfw::fail_on_errors).unwrap();
 
@@ -49,16 +50,15 @@ impl App {
 
         let (width, height) = window.get_framebuffer_size();
 
+        // initial opengl state setup
         unsafe {
             gl::Viewport(0, 0, width as i32, height as i32);
+
+            // enable depth testing
+            gl::Enable(gl::DEPTH_TEST);
         }
 
         let last_frame_time = glfw.get_time();
-
-        // enable depth testing
-        unsafe {
-            gl::Enable(gl::DEPTH_TEST);
-        }
 
         App { glfw, window, events, width, height, resized: false,
             camera: Camera::new(glam::Vec3::new(0.0, 0.0, 3.0), glam::Vec3::Y, -90.0, 0.0),
@@ -83,6 +83,7 @@ impl App {
         // poll events
         self.glfw.poll_events();
 
+        // handle events
         for (_, event) in glfw::flush_messages(&self.events) {
             match event {
                 glfw::WindowEvent::FramebufferSize(w, h) => {
