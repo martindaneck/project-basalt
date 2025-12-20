@@ -28,9 +28,12 @@ impl Mesh {
 
         vbo.upload(vertices, gl::STATIC_DRAW);
 
-        vao.set_vertex_buffer(0, &vbo, 0, (5 * std::mem::size_of::<f32>()) as i32);
+        // standard vertex attributes: position (3 floats), normal (3 floats), tangent + handedness (4 floats), tex coords (2 floats)
+        vao.set_vertex_buffer(0, &vbo, 0, (12 * std::mem::size_of::<f32>()) as i32);
         vao.enable_attribute(0, 3, 0, 0);
-        vao.enable_attribute(1, 2, 0, (3 * std::mem::size_of::<f32>()) as usize);
+        vao.enable_attribute(1, 3, 0, (3 * std::mem::size_of::<f32>()) as usize);
+        vao.enable_attribute(2, 4, 0, (6 * std::mem::size_of::<f32>()) as usize);
+        vao.enable_attribute(3, 2, 0, (10 * std::mem::size_of::<f32>()) as usize);
 
         let (ebo, index_count) = if let Some(indices) = indices {
             let ebo = Buffer::new();
@@ -38,7 +41,7 @@ impl Mesh {
             vao.set_element_buffer(&ebo);
             (Some(ebo), indices.len() as i32)
         } else {
-            (None, vertices.len() as i32 / 5) // 5 is number of components per vertex, e.g., x, y, z, u, v
+            (None, vertices.len() as i32 / 12) // 12 is number of components per vertex, e.g., x, y, z, nx, ny, nz, tx, ty, tz, tw, u, v
         };
 
         // texture setup, if paths are provided, load textures, else None
@@ -71,11 +74,11 @@ impl Mesh {
         normal_path: Option<&str>,
         orm_path: Option<&str>,
     ) -> Self {
-        let vertices: [f32; 15] = [
-            // positions       // tex coords
-             0.0,  0.5, 0.0,   0.5, 1.0,
-            -0.5, -0.5, 0.0,   0.0, 0.0,
-             0.5, -0.5, 0.0,   1.0, 0.0,
+        let vertices: [f32; 36] = [
+            // positions       // normals      // tangents+handedness  // tex coords
+            0.0,  0.5, 0.0,   0.0, 0.0, 1.0,   1.0, 0.0, 0.0, 1.0,     0.5, 1.0,
+           -0.5, -0.5, 0.0,   0.0, 0.0, 1.0,   1.0, 0.0, 0.0, 1.0,     0.0, 0.0,
+            0.5, -0.5, 0.0,   0.0, 0.0, 1.0,   1.0, 0.0, 0.0, 1.0,     1.0, 0.0,
         ];
 
         Self::new(&vertices, None, albedo_path, normal_path, orm_path, &DefaultTextures::new())

@@ -1,6 +1,7 @@
 #![allow(dead_code, unused)]
 
 use glfw::{Action, Context, Key};
+use glam::{self, Mat4};
 
 mod renderer;
 use renderer::shader::Shader;
@@ -25,6 +26,9 @@ fn main() {
         app.update_shader_camera(&shader);
 
         shader.bind();
+
+        let model_matrix = Mat4::from_translation(glam::vec3(0.0, 0.0, -2.0));
+        shader.set_mat4("model", &model_matrix);
         triangle.draw();
 
         app.end_frame();
