@@ -15,7 +15,43 @@ pub struct Mesh {
 }
 
 impl Mesh {
+    // this constructor is used by the model loader
     pub fn new(
+        vertices: &[f32],
+        indices: &[u32],
+        albedo: Texture2D,
+        normal: Texture2D,
+        orm: Texture2D,
+    ) -> Self {
+        let vao = VertexArray::new();
+        let vbo = Buffer::new();
+        let ebo = Buffer::new();
+
+        vbo.upload(vertices, gl::STATIC_DRAW);
+        ebo.upload(indices, gl::STATIC_DRAW);
+
+        // standard vertex attributes: position (3 floats), normal (3 floats), tangent + handedness (4 floats), tex coords (2 floats)
+        vao.set_vertex_buffer(0, &vbo, 0, (12 * std::mem::size_of::<f32>()) as i32);
+        vao.enable_attribute(0, 3, 0, 0);
+        vao.enable_attribute(1, 3, 0, (3 * std::mem::size_of::<f32>()) as usize);
+        vao.enable_attribute(2, 4, 0, (6 * std::mem::size_of::<f32>()) as usize);
+        vao.enable_attribute(3, 2, 0, (10 * std::mem::size_of::<f32>()) as usize);
+        vao.set_element_buffer(&ebo);
+
+        Self {
+            vao,
+            vbo,
+            ebo: Some(ebo),
+            index_count: indices.len() as i32,
+            albedo,
+            normal,
+            orm,
+        }
+    }
+
+
+    // this constructor is used for manual mesh creation by hand (e.g., for simple shapes)
+    pub fn new_manual(
         vertices: &[f32],
         indices: Option<&[u32]>,
         albedo_path: Option<&str>,
@@ -81,7 +117,7 @@ impl Mesh {
             0.5, -0.5, 0.0,   0.0, 0.0, 1.0,   1.0, 0.0, 0.0, 1.0,     1.0, 0.0,
         ];
 
-        Self::new(&vertices, None, albedo_path, normal_path, orm_path, &DefaultTextures::new())
+        Self::new_manual(&vertices, None, albedo_path, normal_path, orm_path, &DefaultTextures::new())
     }
 
     pub fn draw(&self) {

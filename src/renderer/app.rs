@@ -55,6 +55,11 @@ impl App {
 
         let last_frame_time = glfw.get_time();
 
+        // enable depth testing
+        unsafe {
+            gl::Enable(gl::DEPTH_TEST);
+        }
+
         App { glfw, window, events, width, height, resized: false,
             camera: Camera::new(glam::Vec3::new(0.0, 0.0, 3.0), glam::Vec3::Y, -90.0, 0.0),
             last_mouse_x: (width / 2) as f64,
@@ -140,7 +145,7 @@ impl App {
         // openGL stuff: clear screen
         unsafe {
             gl::ClearColor(0.1, 0.1, 0.1, 1.0);
-            gl::Clear(gl::COLOR_BUFFER_BIT);
+            gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
     }
 

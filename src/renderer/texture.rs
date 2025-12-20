@@ -79,6 +79,53 @@ impl Texture2D {
         Self { id, width: 1, height: 1 }
     }
 
+    pub fn from_gltf(
+        image: Option<&gltf::image::Data>,
+        srgb: bool,
+    ) -> Self {
+        if let Some(img) = image {
+            let (format, internal_format) = match img.format {
+                gltf::image::Format::R8G8B8A8 => (
+                    gl::RGBA,
+                    if srgb { gl::SRGB8_ALPHA8 } else { gl::RGBA8 },
+                ),
+                gltf::image::Format::R8G8B8 => (
+                    gl::RGB,
+                    if srgb { gl::SRGB8 } else { gl::RGB8 },
+                ),
+                _ => panic!("Unsupported image format"),
+            };
+
+            let mut id = 0;
+
+            unsafe {
+                gl::CreateTextures(gl::TEXTURE_2D, 1, &mut id);
+                gl::TextureStorage2D(id, 1, internal_format, img.width as i32, img.height as i32);
+                gl::TextureSubImage2D(
+                    id,
+                    0,
+                    0,
+                    0,
+                    img.width as i32,
+                    img.height as i32,
+                    format,
+                    gl::UNSIGNED_BYTE,
+                    img.pixels.as_ptr() as *const _,
+                );
+
+                gl::TextureParameteri(id, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);
+                gl::TextureParameteri(id, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
+                gl::TextureParameteri(id, gl::TEXTURE_MIN_FILTER, gl::LINEAR_MIPMAP_LINEAR as i32);
+                gl::TextureParameteri(id, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
+                gl::GenerateTextureMipmap(id);
+            }
+            Self { id, width: img.width as i32, height: img.height as i32 }
+        } else {
+            // default white texture
+            DefaultTextures::new().normal
+        }
+    }
+
     pub fn bind(&self, unit: u32) {
         unsafe {
             gl::BindTextureUnit(unit, self.id);

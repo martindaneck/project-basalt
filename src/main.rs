@@ -8,6 +8,8 @@ use renderer::shader::Shader;
 use renderer::mesh::Mesh;
 use renderer::app::App;
 
+use crate::renderer::model::Model;
+
 fn main() {
     let mut app = App::new(1920, 1080, "OpenGL Triangle");
 
@@ -18,8 +20,10 @@ fn main() {
     );
 
     let triangle = Mesh::triangle(Some("assets/textures/brickwall_texture/albedo.png"),
-                                  None,
-                                  None);
+                                  Some("assets/textures/brickwall_texture/normal.png"),
+                                  Some("assets/textures/brickwall_texture/orm.png"));
+
+    let amongus = Model::load("assets/models/amongusclay/scene.gltf");
 
     while app.is_running() {
         app.begin_frame();
@@ -30,6 +34,13 @@ fn main() {
         let model_matrix = Mat4::from_translation(glam::vec3(0.0, 0.0, -2.0));
         shader.set_mat4("model", &model_matrix);
         triangle.draw();
+
+        let model_matrix = Mat4::from_rotation_translation(
+            glam::Quat::from_axis_angle(glam::Vec3::X, 270.0_f32.to_radians()),
+            glam::vec3(-1.0, 0.0, 0.0),
+        );
+        shader.set_mat4("model", &model_matrix);
+        amongus.draw();
 
         app.end_frame();
     }

@@ -8,5 +8,9 @@ uniform sampler2D normal;
 uniform sampler2D orm;
 
 void main() {
-    FragColor = texture(albedo, TexCoords);
+    vec4 color = texture(albedo, TexCoords);
+
+    // gamma correction
+    color = pow(color, vec4(1.0/2.2));
+    FragColor = color;
 }
