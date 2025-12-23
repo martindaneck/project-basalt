@@ -73,12 +73,15 @@ impl ImguiSettings {
                 ui.text("HDR");
                 ui.slider("Gamma", 0.1, 4.0, &mut self.settings.gamma);
                 ui.slider("Exposure", 0.01, 10.0, &mut self.settings.exposure);
-                // radio buttons for render mode 0-3
+                // radio buttons for render mode 0-4
                 ui.text("Render Mode (Debug)");
-                ui.radio_button("Render Mode 0", &mut self.settings.rendermode, 0);
-                ui.radio_button("Render Mode 1", &mut self.settings.rendermode, 1);
-                ui.radio_button("Render Mode 2", &mut self.settings.rendermode, 2);
-                ui.radio_button("Render Mode 3", &mut self.settings.rendermode, 3);
+                ui.radio_button("Render Mode: Default", &mut self.settings.rendermode, 0);
+                ui.radio_button("Render Mode: Albedo Map", &mut self.settings.rendermode, 1);
+                ui.radio_button("Render Mode: Normal Map", &mut self.settings.rendermode, 2);
+                ui.radio_button("Render Mode: ORM Map", &mut self.settings.rendermode, 3);
+                ui.radio_button("Render Mode: Vertex Normal", &mut self.settings.rendermode, 4);
+                ui.radio_button("Render Mode: Vertex Tangent", &mut self.settings.rendermode, 5);
+                ui.radio_button("Render Mode: Final Normal", &mut self.settings.rendermode, 6);
             });
     }
 
