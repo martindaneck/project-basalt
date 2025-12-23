@@ -1,4 +1,4 @@
 pub mod app;
-pub mod settings;
+pub mod imgui_settings;
 
 pub use app::App;

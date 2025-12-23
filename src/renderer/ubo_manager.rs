@@ -38,7 +38,7 @@ impl UboManager {
         let settings = SettingsUniforms {
             gamma: 2.2,
             exposure: 1.0,
-            rendermode: 1,
+            rendermode: 0,
             _padding: 0.0,
         };
         let settings_ubo = Buffer::new();
@@ -68,11 +68,18 @@ impl UboManager {
             camera_dirty: false,
         }
     }
+    
     // Settings
-    // this is a prototype, no input yet
-    pub fn set_settings(&mut self) -> &mut SettingsUniforms {
+    pub fn set_settings(
+        &mut self, 
+        (gamma, exposure, rendermode): (
+            f32, f32, u32
+        )
+    ) {
+        self.settings.gamma = gamma;
+        self.settings.exposure = exposure;
+        self.settings.rendermode = rendermode;
         self.settings_dirty = true;
-        &mut self.settings
     }
 
     // Camera

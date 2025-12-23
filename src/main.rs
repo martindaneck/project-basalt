@@ -10,12 +10,14 @@ use renderer::model::Model;
 use renderer::ubo_manager::UboManager;
 mod app;
 use app::App;
+use app::imgui_settings::ImguiSettings;
 
 fn main() {
     let mut app = App::new(1920, 1080, "OpenGL Triangle");
 
     let mut ubo_manager = UboManager::new();
 
+    let mut imgui_settings = ImguiSettings::new();
 
     let shader = Shader::from_files(
         "assets/shaders/default.vertex.glsl",
@@ -30,6 +32,11 @@ fn main() {
 
     while app.is_running() {
         app.begin_frame();
+        imgui_settings.begin_frame(&mut app.window);
+        imgui_settings.draw();
+
+        
+        ubo_manager.set_settings(imgui_settings.get_settings());
         ubo_manager.set_camera(app.get_view_projection_position());
         ubo_manager.update();
 
@@ -46,6 +53,10 @@ fn main() {
         shader.set_mat4("model", &model_matrix);
         amongus.draw();
 
+        
+        
+        imgui_settings.end_frame();
+        
         app.end_frame();
     }
 }

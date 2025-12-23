@@ -5,7 +5,7 @@ use crate::renderer::{Camera, CameraMovement, shader};
 
 pub struct App {
     glfw: glfw::Glfw,
-    window: glfw::PWindow,
+    pub window: glfw::PWindow,
     events: glfw::GlfwReceiver<(f64, glfw::WindowEvent)>,
 
     width: i32,
@@ -17,6 +17,7 @@ pub struct App {
     last_mouse_y: f64,
     first_mouse: bool,
     last_frame_time: f64,
+    dt: f64,
 
     mouse_locked: bool,
 }
@@ -67,6 +68,7 @@ impl App {
             last_mouse_y: (height / 2) as f64,
             first_mouse: true,
             last_frame_time,
+            dt: 0.0,
             mouse_locked: true,
         }
     }

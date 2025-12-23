@@ -20,7 +20,7 @@ void main() {
     vec4 orm = texture(orm, TexCoords);
 
     // gamma correction
-    vec4 color = pow(albedo, vec4(1.0/2.2));
+    vec4 color = pow(albedo, vec4(1.0/gamma));
 
 
     // different debug modes

@@ -11,4 +11,3 @@ image = "0.25.9"
 gltf = "1.4.1"
 imgui = "0.9"
 imgui-opengl-renderer = "0.12.1"
-

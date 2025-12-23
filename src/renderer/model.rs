@@ -68,7 +68,7 @@ impl Model {
                     false,
                 );
                 let orm = Texture2D::from_gltf(
-                    material.occlusion_texture()
+                    pbr.metallic_roughness_texture()
                         .map(|info| &images[info.texture().source().index()]),
                     false,
                 );
