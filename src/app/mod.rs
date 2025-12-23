@@ -1,4 +1,4 @@
 pub mod app;
-pub mod ui;
+pub mod settings;
 
 pub use app::App;

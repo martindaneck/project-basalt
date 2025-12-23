@@ -5,6 +5,7 @@ pub mod mesh;
 pub mod camera;
 pub mod texture;
 pub mod model;
+pub mod ubo_manager;
 
 pub use buffer::Buffer;
 pub use vao::VertexArray;

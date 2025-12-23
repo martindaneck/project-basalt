@@ -1,4 +1,5 @@
 use glfw::{Action, Context, Key};
+use glam::{Mat4, Vec3};
 
 use crate::renderer::{Camera, CameraMovement, shader};
 
@@ -166,13 +167,14 @@ impl App {
         self.resized = false;
     }
 
-    pub fn update_shader_camera(&self, shader: &shader::Shader) {
+    pub fn get_view_projection_position(&self) -> (Mat4, Mat4, Vec3) {
         let aspect_ratio = self.width as f32 / self.height as f32;
         let view = self.camera.get_view_matrix();
         let projection = self.camera.get_projection_matrix(aspect_ratio);
+        let camera_position = self.camera.position;
 
-        shader.set_mat4("view", &view);
-        shader.set_mat4("projection", &projection);
+        // return both matrices and position
+        (view, projection, camera_position)
     }
 
 }

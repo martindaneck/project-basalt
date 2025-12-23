@@ -7,11 +7,14 @@ mod renderer;
 use renderer::shader::Shader;
 use renderer::mesh::Mesh;
 use renderer::model::Model;
+use renderer::ubo_manager::UboManager;
 mod app;
-use app::app::App;
+use app::App;
 
 fn main() {
     let mut app = App::new(1920, 1080, "OpenGL Triangle");
+
+    let mut ubo_manager = UboManager::new();
 
 
     let shader = Shader::from_files(
@@ -27,7 +30,8 @@ fn main() {
 
     while app.is_running() {
         app.begin_frame();
-        app.update_shader_camera(&shader);
+        ubo_manager.set_camera(app.get_view_projection_position());
+        ubo_manager.update();
 
         shader.bind();
 
@@ -36,7 +40,7 @@ fn main() {
         triangle.draw();
 
         let model_matrix = Mat4::from_rotation_translation(
-            glam::Quat::from_axis_angle(glam::Vec3::X, 270.0_f32.to_radians()),
+            glam::Quat::from_axis_angle(glam::Vec3::X, -90.0_f32.to_radians()),
             glam::vec3(-1.0, 0.0, 0.0),
         );
         shader.set_mat4("model", &model_matrix);
