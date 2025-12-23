@@ -1,4 +1,5 @@
 use image::GenericImageView;
+use imgui::internal;
 
 pub enum TextureFormat {
     SrgbRGBA,
@@ -7,9 +8,9 @@ pub enum TextureFormat {
 
 #[derive(Clone)]
 pub struct Texture2D {
-    id: u32,
-    width: i32,
-    height: i32,
+    pub id: u32,
+    pub width: i32,
+    pub height: i32,
 }
 
 impl Texture2D {
@@ -124,6 +125,21 @@ impl Texture2D {
             // default white texture
             DefaultTextures::new().normal
         }
+    }
+
+    pub fn empty(width: u32, height: u32, internal_format: u32, filter: u32, wrap_mode: u32) -> Self {
+        let mut id = 0;
+
+        unsafe {
+            gl::CreateTextures(gl::TEXTURE_2D, 1, &mut id);
+            gl::TextureStorage2D(id, 1, internal_format, width as i32, height as i32);
+            gl::TextureParameteri(id, gl::TEXTURE_MIN_FILTER, filter as i32);
+            gl::TextureParameteri(id, gl::TEXTURE_MAG_FILTER, filter as i32);
+            gl::TextureParameteri(id, gl::TEXTURE_WRAP_S, wrap_mode as i32);
+            gl::TextureParameteri(id, gl::TEXTURE_WRAP_T, wrap_mode as i32);
+        }
+
+        Self { id, width: width as i32, height: height as i32 }
     }
 
     pub fn bind(&self, unit: u32) {

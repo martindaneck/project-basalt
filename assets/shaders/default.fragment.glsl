@@ -22,8 +22,8 @@ void main() {
 
     vec3 normal = normalize(TBN * (normal_tangent_space.rgb * 2.0 - 1.0));
 
-    // gamma correction
-    vec4 color = pow(albedo, vec4(1.0/gamma));
+    vec4 color = albedo;
+    
     // different debug modes
     if (rendermode == 0) { // default
         FragColor = color;

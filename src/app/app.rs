@@ -8,8 +8,8 @@ pub struct App {
     pub window: glfw::PWindow,
     events: glfw::GlfwReceiver<(f64, glfw::WindowEvent)>,
 
-    width: i32,
-    height: i32,
+    pub width: i32,
+    pub height: i32,
     resized: bool,
 
     camera: Camera,

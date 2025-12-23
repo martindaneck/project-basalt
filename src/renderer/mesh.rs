@@ -143,3 +143,40 @@ impl Mesh {
         }
     }
 }
+
+
+pub struct FullscreenQuad {
+    vao: VertexArray,
+    vbo: Buffer,
+}
+
+impl FullscreenQuad {
+    pub fn new() -> Self {
+        let vertices: [f32; 16] = [
+            // positions   // tex coords
+            -1.0,  1.0,    0.0, 1.0,
+            -1.0, -1.0,    0.0, 0.0,
+             1.0,  1.0,    1.0, 1.0,
+             1.0, -1.0,    1.0, 0.0,
+        ];
+
+        let vao = VertexArray::new();
+        let vbo = Buffer::new();
+
+        vbo.upload(&vertices, gl::STATIC_DRAW);
+
+        vao.set_vertex_buffer(0, &vbo, 0, (4 * std::mem::size_of::<f32>()) as i32);
+        vao.enable_attribute(0, 2, 0, 0);
+        vao.enable_attribute(1, 2, 0, (2 * std::mem::size_of::<f32>()) as usize);
+
+        Self { vao, vbo }
+    }
+
+    pub fn draw(&self) {
+        self.vao.bind();
+        unsafe {
+            gl::DrawArrays(gl::TRIANGLE_STRIP, 0, 4);
+        }
+    }
+}
+    

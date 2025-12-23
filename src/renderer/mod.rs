@@ -6,6 +6,8 @@ pub mod camera;
 pub mod texture;
 pub mod model;
 pub mod ubo_manager;
+pub mod framebuffer;
+pub mod hdr_pass;
 
 pub use buffer::Buffer;
 pub use vao::VertexArray;
