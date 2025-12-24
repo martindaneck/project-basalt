@@ -1,13 +1,15 @@
 use std::ffi::CString;
-
 use imgui::*;
 use imgui_opengl_renderer::Renderer;
 use glfw::{Action, Context, Key};
+
+use crate::renderer::light::Light;
 
 pub struct Settings {
     gamma: f32,
     exposure: f32,
     rendermode: u32,
+    light1: Light,
 }
 
 pub struct ImguiSettings {
@@ -42,6 +44,7 @@ impl ImguiSettings {
             gamma: 2.2,
             exposure: 1.0,
             rendermode: 0,
+            light1: Light::new([0.0, 3.0, 0.0], 10.0, [1.0, 1.0, 1.0], 1.0),
         };
 
         Self { imgui, renderer, settings, last_frame_time: std::time::Instant::now() }
@@ -73,7 +76,15 @@ impl ImguiSettings {
                 ui.text("HDR");
                 ui.slider("Gamma", 0.1, 4.0, &mut self.settings.gamma);
                 ui.slider("Exposure", 0.01, 10.0, &mut self.settings.exposure);
-                // radio buttons for render mode 0-4
+                ui.separator();
+                ui.text("Light 1");
+                ui.slider("Position X", -50.0, 50.0, &mut self.settings.light1.position[0]);
+                ui.slider("Position Y", -50.0, 50.0, &mut self.settings.light1.position[1]);
+                ui.slider("Position Z", -50.0, 50.0, &mut self.settings.light1.position[2]);
+                ui.slider("Range", 0.0, 100.0, &mut self.settings.light1.range);
+                ui.color_edit3("Color", &mut self.settings.light1.color);
+                ui.slider("Intensity", 0.0, 100.0, &mut self.settings.light1.intensity);
+                ui.separator();
                 ui.text("Render Mode (Debug)");
                 ui.radio_button("Render Mode: Default", &mut self.settings.rendermode, 0);
                 ui.radio_button("Render Mode: Albedo Map", &mut self.settings.rendermode, 1);
@@ -91,5 +102,8 @@ impl ImguiSettings {
 
     pub fn get_settings(&self) -> (f32, f32, u32) {
         (self.settings.gamma, self.settings.exposure, self.settings.rendermode)
+    }
+    pub fn get_light(&self) -> Light {
+        self.settings.light1
     }
 }

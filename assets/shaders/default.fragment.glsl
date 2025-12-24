@@ -1,4 +1,10 @@
 #version 460 core
+
+struct Light {
+        vec4 position_range; // xyz = position, w = range
+        vec4 color_intensity; // xyz = color, w = intensity
+};
+
 out vec4 FragColor;
 
 in vec2 TexCoords;
@@ -9,6 +15,16 @@ layout(std140, binding = 0) uniform Settings {
     float exposure;
     int rendermode;
     float _padding;
+};
+layout(std140, binding = 1) uniform Camera {
+    mat4 view;
+    mat4 projection;
+    vec3 camera_position;
+    float _padding2; // if problems, change camera_position to a vec4.
+};
+layout(std140, binding = 2) uniform Lights {
+    vec4 count; // count.x is the number of lights, rest is padding
+    Light lights[1];
 };
 
 layout(binding = 0) uniform sampler2D albedo;
@@ -23,7 +39,7 @@ void main() {
     vec3 normal = normalize(TBN * (normal_tangent_space.rgb * 2.0 - 1.0));
 
     vec4 color = albedo;
-    
+
     // different debug modes
     if (rendermode == 0) { // default
         FragColor = color;

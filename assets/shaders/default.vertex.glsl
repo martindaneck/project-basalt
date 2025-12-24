@@ -11,6 +11,7 @@ layout(std140, binding = 1) uniform Camera {
     mat4 view;
     mat4 projection;
     vec3 camera_position;
+    float _padding2;
 };
 
 uniform mat4 model;
