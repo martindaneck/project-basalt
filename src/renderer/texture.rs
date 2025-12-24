@@ -17,6 +17,7 @@ impl Texture2D {
     pub fn from_file(path: &str, format: TextureFormat) -> Self {
         let img = image::open(path)
             .expect("Failed to open image")
+            .flipv()
             .to_rgba8();
 
         let (width, height) = img.dimensions();
