@@ -6,7 +6,7 @@ use glam::{self, Mat4};
 mod renderer;
 use image::codecs::hdr;
 use renderer::shader::Shader;
-use renderer::mesh::{Mesh, FullscreenQuad};
+use renderer::mesh::{Mesh, FullscreenQuad, LightCube};
 use renderer::model::Model;
 use renderer::ubo_manager::UboManager;
 use renderer::texture::Texture2D;
@@ -35,12 +35,17 @@ fn main() {
         "assets/shaders/tonemap.vertex.glsl",
         "assets/shaders/tonemap.fragment.glsl",
     );
+    let lightindicator_shader = Shader::from_files(
+        "assets/shaders/default.vertex.glsl",
+        "assets/shaders/lightindicator.fragment.glsl",
+    );
     // meshes
     let fullscreen_quad = FullscreenQuad::new();
 
     let triangle = Mesh::triangle(Some("assets/textures/brickwall_texture/albedo.png"),
                                   Some("assets/textures/brickwall_texture/normal.png"),
                                   Some("assets/textures/brickwall_texture/orm.png"));
+    let lightcube = LightCube::new();
     // models
     let amongus = Model::load("assets/models/amongusclay/scene.gltf");
     // lights
@@ -77,6 +82,17 @@ fn main() {
         );
         shader.set_mat4("model", &model_matrix);
         amongus.draw();
+
+        // draw light indicators
+        lightindicator_shader.bind();
+        let light_positions = light_manager.get_light_positions();
+        for pos in light_positions.iter() {
+            let model_matrix = Mat4::from_translation(
+                glam::vec3(pos[0], pos[1], pos[2]),
+            );
+            lightindicator_shader.set_mat4("model", &model_matrix);
+            lightcube.draw();
+        }
         hdr_pass.end();
 
         /// tonemap pass

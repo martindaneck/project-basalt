@@ -180,3 +180,65 @@ impl FullscreenQuad {
     }
 }
     
+// light cube: used for visualizing light positions
+pub struct LightCube {
+    vao: VertexArray,
+    vbo: Buffer,
+    ebo: Buffer,
+    index_count: i32,
+}
+
+impl LightCube {
+    pub fn new() -> Self {
+        let vertices: [f32; 24] = [
+            // positions
+            -0.1, -0.1, -0.1,
+             0.1, -0.1, -0.1,
+             0.1,  0.1, -0.1,
+            -0.1,  0.1, -0.1,
+            -0.1, -0.1,  0.1,
+             0.1, -0.1,  0.1,
+             0.1,  0.1,  0.1,
+            -0.1,  0.1,  0.1,
+        ];
+
+        let indices: [u32; 36] = [
+            0, 1, 2, 2, 3, 0,
+            4, 5, 6, 6, 7, 4,
+            0, 4, 7, 7, 3, 0,
+            1, 5, 6, 6, 2, 1,
+            3, 2, 6, 6, 7, 3,
+            0, 1, 5, 5, 4, 0,
+        ];
+
+        let vao = VertexArray::new();
+        let vbo = Buffer::new();
+        let ebo = Buffer::new();
+
+        vbo.upload(&vertices, gl::STATIC_DRAW);
+        ebo.upload(&indices, gl::STATIC_DRAW);
+
+        vao.set_vertex_buffer(0, &vbo, 0, (3 * std::mem::size_of::<f32>()) as i32);
+        vao.enable_attribute(0, 3, 0, 0);
+        vao.set_element_buffer(&ebo);
+
+        Self {
+            vao,
+            vbo,
+            ebo,
+            index_count: indices.len() as i32,
+        }
+    }
+
+    pub fn draw(&self) {
+        self.vao.bind();
+        unsafe {
+            gl::DrawElements(
+                gl::TRIANGLES,
+                self.index_count,
+                gl::UNSIGNED_INT,
+                std::ptr::null(),
+            );
+        }
+    }
+}
