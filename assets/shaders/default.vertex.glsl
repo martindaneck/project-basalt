@@ -6,6 +6,7 @@ layout (location = 3) in vec2 aTexCoords;
 
 out vec2 TexCoords;
 out mat3 TBN;
+out vec3 FragPos;
 
 layout(std140, binding = 1) uniform Camera {
     mat4 view;
@@ -25,6 +26,7 @@ void main() {
     vec3 N = normalize(vec3(model * vec4(aNormal, 0.0)));
     vec3 B = cross(N, T) * aTangent.w;
     TBN = mat3(T, B, N);
+    FragPos = positionWorld.xyz;
 
     gl_Position = projection * view * positionWorld;
 }

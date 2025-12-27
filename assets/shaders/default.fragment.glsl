@@ -9,6 +9,7 @@ out vec4 FragColor;
 
 in vec2 TexCoords;
 in mat3 TBN;
+in vec3 FragPos;
 
 layout(std140, binding = 0) uniform Settings {
     float gamma;
@@ -31,18 +32,89 @@ layout(binding = 0) uniform sampler2D albedo;
 layout(binding = 1) uniform sampler2D normal;
 layout(binding = 2) uniform sampler2D orm;
 
+// PBR helper functions
+vec3 fresnel_schlick(float cosTheta, vec3 F0) {
+    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+float distribution_ggx(vec3 N, vec3 H, float roughness) {
+    float a = roughness * roughness;
+    float a2 = a * a;
+    float NdotH = max(dot(N, H), 0.0);
+    float NdotH2 = NdotH * NdotH;
+
+    float num = a2;
+    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+    denom = 3.14159265 * denom * denom;
+
+    return num / denom;
+}
+
+float geometry_schlick_ggx(float NdotV, float roughness) {
+    float r = (roughness + 1.0);
+    float k = (r * r) / 8.0;
+
+    float num = NdotV;
+    float denom = NdotV * (1.0 - k) + k;
+
+    return num / denom;
+}
+
+float geometry_smith(vec3 N, vec3 V, vec3 L, float roughness) {
+    float NdotV = max(dot(N, V), 0.0);
+    float NdotL = max(dot(N, L), 0.0);
+    float ggx2 = geometry_schlick_ggx(NdotV, roughness);
+    float ggx1 = geometry_schlick_ggx(NdotL, roughness);
+
+    return ggx1 * ggx2;
+}
+
 void main() {
     vec4 albedo = texture(albedo, TexCoords);
     vec4 normal_tangent_space = texture(normal, TexCoords);
     vec4 orm = texture(orm, TexCoords);
-
     vec3 normal = normalize(TBN * (normal_tangent_space.rgb * 2.0 - 1.0));
 
-    vec4 color = albedo;
+    // PBR 
+    vec3 N = normal;
+    vec3 V = normalize(camera_position - FragPos);
+    vec3 F0 = vec3(0.04);
+    F0 = mix(F0, albedo.rgb, orm.b); // orm.b is
+    float roughness = orm.g; // orm.g is roughness
+    float metallic = orm.r; // orm.r is metallic
+
+    vec3 Lo = vec3(0.0);
+    int lightCount = int(count.x);
+    for (int i = 0; i < 1; ++i) {
+        Light light = lights[i];
+        vec3 L = normalize(light.position_range.xyz - FragPos);
+        vec3 H = normalize(V + L);
+        float distance = length(light.position_range.xyz - FragPos);
+        float attenuation = 1.0 / distance * distance;
+        vec3 radiance = light.color_intensity.xyz * light.color_intensity.w * attenuation;
+
+        // cook-torrance brdf
+        float NDF = distribution_ggx(N, H, roughness);
+        float G = geometry_smith(N, V, L, roughness);
+        vec3 F = fresnel_schlick(max(dot(H, V), 0.0), F0);
+        vec3 numerator = NDF * G * F;
+        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.001;
+        vec3 specular = numerator / denominator;
+        vec3 kS = F;
+        vec3 kD = vec3(1.0) - kS;
+        kD *= 1.0 - metallic;
+        kD *= albedo.rgb / 3.14159265;
+
+        float NdotL = max(dot(N, L), 0.0);
+        Lo += (kD + specular) * radiance * NdotL;
+    }
+
+    vec3 ambient = vec3(0.08) * albedo.rgb;
+    vec3 color = ambient + Lo;
 
     // different debug modes
     if (rendermode == 0) { // default
-        FragColor = color;
+        FragColor = vec4(color, 1.0);
     } else if (rendermode == 1) { // albedo map
         FragColor = vec4(albedo.rgb, 1.0);
     } else if (rendermode == 2) { // normal map
