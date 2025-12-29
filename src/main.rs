@@ -18,7 +18,7 @@ use app::imgui_settings::ImguiSettings;
 use crate::renderer::{hdr_pass, light};
 
 fn main() {
-    let mut app = App::new(1920, 1080, "OpenGL Triangle");
+    let mut app = App::new(1920, 1080, "OpenGL Triangle"); // these numbers shouldn't really matter
 
     let mut ubo_manager = UboManager::new();
 
@@ -67,7 +67,7 @@ fn main() {
         ubo_manager.update();
         
         /// HDR pass
-        hdr_pass.begin();
+        hdr_pass.begin(app.width as u32, app.height as u32);
         shader.bind();
 
         // triangle

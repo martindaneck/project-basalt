@@ -13,6 +13,6 @@ pub mod light;
 pub use buffer::Buffer;
 pub use vao::VertexArray;
 pub use camera::{Camera, CameraMovement};
-pub use texture::{Texture2D, TextureFormat, DefaultTextures};
+pub use texture::{Texture2D, DefaultTextures};
 pub use mesh::Mesh;
 pub use light::Light;

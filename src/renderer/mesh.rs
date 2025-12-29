@@ -1,4 +1,4 @@
-use super::{Buffer, VertexArray, Texture2D, TextureFormat, DefaultTextures};
+use super::{Buffer, VertexArray, Texture2D, DefaultTextures};
 
 
 
@@ -82,15 +82,15 @@ impl Mesh {
 
         // texture setup, if paths are provided, load textures, else None
         let albedo = albedo_path
-            .map(|path| Texture2D::from_file(path, TextureFormat::SrgbRGBA))
+            .map(|path| Texture2D::from_file(path, "sRGB8_RGBA8"))
             .unwrap_or_else(|| defaults.white.clone());
 
         let normal = normal_path
-            .map(|path| Texture2D::from_file(path, TextureFormat::LinearRGBA))
+            .map(|path| Texture2D::from_file(path, "Linear_RGBA8"))
             .unwrap_or_else(|| defaults.normal.clone());
 
         let orm = orm_path
-            .map(|path| Texture2D::from_file(path, TextureFormat::LinearRGBA))
+            .map(|path| Texture2D::from_file(path, "Linear_RGBA8"))
             .unwrap_or_else(|| defaults.black.clone());
 
         Self {

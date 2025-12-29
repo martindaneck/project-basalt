@@ -1,31 +1,31 @@
 use image::GenericImageView;
 use imgui::internal;
 
-pub enum TextureFormat {
-    SrgbRGBA,
-    LinearRGBA,
-}
-
 #[derive(Clone)]
 pub struct Texture2D {
     pub id: u32,
     pub width: i32,
     pub height: i32,
+    internal_format: u32,
+    format: u32,
 }
 
 impl Texture2D {
-    pub fn from_file(path: &str, format: TextureFormat) -> Self {
+    pub fn from_file(path: &str, internal_format: &str) -> Self {
         let img = image::open(path)
             .expect("Failed to open image")
             .flipv()
             .to_rgba8();
 
         let (width, height) = img.dimensions();
-        
-        let internal_format = match format {
-            TextureFormat::SrgbRGBA => gl::SRGB8_ALPHA8,
-            TextureFormat::LinearRGBA => gl::RGBA8,
+
+        let internal_format = match internal_format {
+            "sRGB8_RGBA8" => gl::SRGB8_ALPHA8,
+            "Linear_RGBA8" => gl::RGBA8,
+            _ => panic!("Unsupported internal format"),
         };
+
+        let format = gl::RGBA;
 
         let mut id = 0;
 
@@ -39,7 +39,7 @@ impl Texture2D {
                 0,
                 width as i32,
                 height as i32,
-                gl::RGBA,
+                format,
                 gl::UNSIGNED_BYTE,
                 img.as_ptr() as *const _,
             );
@@ -51,15 +51,18 @@ impl Texture2D {
             gl::GenerateTextureMipmap(id);
         }
 
-        Self { id, width: width as i32, height: height as i32 }
+        Self { id, width: width as i32, height: height as i32, internal_format, format }
    }
 
    pub fn from_rgba8(color: [u8; 4]) -> Self {
         let mut id = 0;
 
+        let internal_format = gl::RGBA8;
+        let format = gl::RGBA;
+
         unsafe {
             gl::CreateTextures(gl::TEXTURE_2D, 1, &mut id);
-            gl::TextureStorage2D(id, 1, gl::RGBA8, 1, 1);
+            gl::TextureStorage2D(id, 1, internal_format, 1, 1);
             gl::TextureSubImage2D(
                 id,
                 0,
@@ -67,7 +70,7 @@ impl Texture2D {
                 0,
                 1,
                 1,
-                gl::RGBA,
+                format,
                 gl::UNSIGNED_BYTE,
                 color.as_ptr() as *const _,
             );
@@ -78,7 +81,7 @@ impl Texture2D {
             gl::TextureParameteri(id, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
         }
 
-        Self { id, width: 1, height: 1 }
+        Self { id, width: 1, height: 1, internal_format, format }
     }
 
     pub fn from_gltf(
@@ -121,7 +124,7 @@ impl Texture2D {
                 gl::TextureParameteri(id, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
                 gl::GenerateTextureMipmap(id);
             }
-            Self { id, width: img.width as i32, height: img.height as i32 }
+            Self { id, width: img.width as i32, height: img.height as i32, internal_format, format }
         } else {
             // default white texture
             DefaultTextures::new().normal
@@ -130,6 +133,7 @@ impl Texture2D {
 
     pub fn empty(width: u32, height: u32, internal_format: u32, filter: u32, wrap_mode: u32) -> Self {
         let mut id = 0;
+        let format = 0; // empty textures don't need a format
 
         unsafe {
             gl::CreateTextures(gl::TEXTURE_2D, 1, &mut id);
@@ -140,13 +144,23 @@ impl Texture2D {
             gl::TextureParameteri(id, gl::TEXTURE_WRAP_T, wrap_mode as i32);
         }
 
-        Self { id, width: width as i32, height: height as i32 }
+        Self { id, width: width as i32, height: height as i32, internal_format, format }
     }
 
     pub fn bind(&self, unit: u32) {
         unsafe {
             gl::BindTextureUnit(unit, self.id);
         }
+    }
+
+    pub fn recreate(&mut self, width: u32, height: u32) {
+        unsafe {
+            gl::DeleteTextures(1, &self.id);
+            gl::CreateTextures(gl::TEXTURE_2D, 1, &mut self.id);
+            gl::TextureStorage2D(self.id, 1, self.internal_format, width as i32, height as i32);
+        }
+        self.width = width as i32;
+        self.height = height as i32;
     }
 }
 

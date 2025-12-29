@@ -16,10 +16,14 @@ impl HdrPass {
         Self { framebuffer }
     }
 
-    pub fn begin(&mut self) {
+    pub fn begin(&mut self, width: u32, height: u32) {
         self.framebuffer.bind();
         unsafe {
-            gl::Viewport(0, 0, self.framebuffer.width as i32, self.framebuffer.height as i32);
+            // change framebuffer size if needed
+            if self.framebuffer.width != width || self.framebuffer.height != height {
+                self.framebuffer.recreate(width, height);
+            }
+            gl::Viewport(0, 0, width as i32, height as i32);
             gl::ClearColor(0.0, 0.0, 0.0, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }

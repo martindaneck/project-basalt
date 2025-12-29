@@ -33,6 +33,8 @@ impl Framebuffer {
     pub fn unbind(&self) {
         unsafe {
             gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
+            // reset viewport
+            gl::Viewport(0, 0, self.width as i32, self.height as i32);
         }
     }
 
@@ -64,9 +66,38 @@ impl Framebuffer {
 
     pub fn check_complete(&self) {
         let status = unsafe {
-            gl::CheckFramebufferStatus(gl::FRAMEBUFFER) == gl::FRAMEBUFFER_COMPLETE
+            gl::CheckNamedFramebufferStatus(self.id, gl::FRAMEBUFFER) == gl::FRAMEBUFFER_COMPLETE
         };
         assert!(status, "Framebuffer is not complete!");
+    }
+
+    pub fn recreate(&mut self, width: u32, height: u32) {
+        self.width = width;
+        self.height = height;
+        // recreate attachments
+        for (i, tex) in self.color.iter_mut().enumerate() {
+            tex.recreate(width, height);
+
+            unsafe {
+                gl::NamedFramebufferTexture(
+                    self.id,
+                    gl::COLOR_ATTACHMENT0 + i as u32,
+                    tex.id,
+                    0,
+                );
+            }
+        }
+        if let Some(depth_tex) = &mut self.depth {
+            depth_tex.recreate(width, height);
+            unsafe {
+                gl::NamedFramebufferTexture(
+                    self.id,
+                    gl::DEPTH_ATTACHMENT,
+                    depth_tex.id,
+                    0,
+                );
+            }
+        }
     }
 }
 
