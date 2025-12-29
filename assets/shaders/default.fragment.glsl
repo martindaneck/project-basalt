@@ -90,7 +90,7 @@ void main() {
         vec3 L = normalize(light.position_range.xyz - FragPos);
         vec3 H = normalize(V + L);
         float distance = length(light.position_range.xyz - FragPos);
-        float attenuation = 1.0 / distance * distance;
+        float attenuation = 1.0 / (distance * distance);
         vec3 radiance = light.color_intensity.xyz * light.color_intensity.w * attenuation;
 
         // cook-torrance brdf

@@ -47,7 +47,7 @@ fn main() {
                                   Some("assets/textures/brickwall_texture/orm.png"));
     let lightcube = LightCube::new();
     // models
-    let amongus = Model::load("assets/models/amongusclay/scene.gltf");
+    let amongus = Model::load("assets/models/amongusclay/scene.gltf");    
     // lights
     light_manager.add_light([0.0; 3], 0.0, [0.0; 3], 0.0); // initialize with zeros, first light is reserved for imgui
     // passes
