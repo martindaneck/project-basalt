@@ -55,9 +55,11 @@ impl App {
         // initial opengl state setup
         unsafe {
             gl::Viewport(0, 0, width as i32, height as i32);
-
             // enable depth testing
             gl::Enable(gl::DEPTH_TEST);
+            // cull faces
+            gl::Enable(gl::CULL_FACE);
+            gl::CullFace(gl::BACK);
         }
 
         let last_frame_time = glfw.get_time();

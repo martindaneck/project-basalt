@@ -109,7 +109,7 @@ void main() {
         Lo += (kD + specular) * radiance * NdotL;
     }
 
-    vec3 ambient = vec3(0.08) * albedo.rgb;
+    vec3 ambient = vec3(0.03) * albedo.rgb;
     vec3 color = ambient + Lo;
 
     // different debug modes
