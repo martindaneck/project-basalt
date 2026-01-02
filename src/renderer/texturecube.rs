@@ -45,9 +45,9 @@ impl TextureCube {
         }
     }
 
-    pub fn bind(&self) {
+    pub fn bind(&self, unit: u32) {
         unsafe {
-            gl::BindTexture(gl::TEXTURE_CUBE_MAP, self.id);
+            gl::BindTextureUnit(unit, self.id);
         }
     }
 
@@ -58,7 +58,7 @@ impl TextureCube {
         let cubemap = TextureCube::empty(size, gl::RGB16F, false);
         // shader
         let shader = Shader::from_files(
-            "assets/shaders/equirectangulartocubemap.vertex.glsl",
+            "assets/shaders/cubemap.vertex.glsl",
             "assets/shaders/equirectangulartocubemap.fragment.glsl",
         );
         // cube
@@ -93,11 +93,9 @@ impl TextureCube {
             gl::ClearColor(0.0, 0.0, 0.0, 1.0);
         }
         for i in 0..6 { // the six faces
-            println!("Capturing face {}", i);
             shader.set_mat4("view", &views[i]); // set the view matrix
             unsafe {
                 // clear temporary texture
-                framebuffer.bind();
                 gl::ClearColor(0.0, 0.0, 0.0, 1.0);
                 gl::Clear(gl::COLOR_BUFFER_BIT);
 

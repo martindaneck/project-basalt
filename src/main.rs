@@ -61,7 +61,7 @@ fn main() {
     // models
     let amongus = Model::load("assets/models/amongusclay/scene.gltf");    
     // lights
-    //light_manager.add_light([0.0; 3], 0.0, [0.0; 3], 0.0); // initialize with zeros, first light is reserved for imgui
+    light_manager.add_light([0.0; 3], 0.0, [0.0; 3], 0.0); // initialize with zeros, first light is reserved for imgui
     // passes
     let mut hdr_pass = HdrPass::new(app.width as u32, app.height as u32);
 
@@ -87,6 +87,8 @@ fn main() {
         /// HDR pass
         hdr_pass.begin(app.width as u32, app.height as u32);
         shader.bind();
+        // bind irradiance map
+        environment_map.bind_irradiance(3);
 
         // triangle
         let model_matrix = Mat4::from_translation(glam::vec3(0.0, 0.0, -2.0));

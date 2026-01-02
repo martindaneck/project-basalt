@@ -32,6 +32,8 @@ layout(binding = 0) uniform sampler2D albedo;
 layout(binding = 1) uniform sampler2D normal;
 layout(binding = 2) uniform sampler2D orm;
 
+layout(binding = 3) uniform samplerCube irradianceMap;
+
 // PBR helper functions
 vec3 fresnel_schlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
@@ -69,6 +71,10 @@ float geometry_smith(vec3 N, vec3 V, vec3 L, float roughness) {
     return ggx1 * ggx2;
 }
 
+vec3 fresnel_schlick_roughness(float cosTheta, vec3 F0, float roughness) { // for ambient lighting
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}
+
 void main() {
     vec4 albedo = texture(albedo, TexCoords);
     vec4 normal_tangent_space = texture(normal, TexCoords);
@@ -79,9 +85,10 @@ void main() {
     vec3 N = normal;
     vec3 V = normalize(camera_position - FragPos);
     vec3 F0 = vec3(0.04);
-    F0 = mix(F0, albedo.rgb, orm.b); // orm.b is
+    F0 = mix(F0, albedo.rgb, orm.b); // orm.b is metallic
+    float ao = orm.r; // orm.r is ambient occlusion
     float roughness = orm.g; // orm.g is roughness
-    float metallic = orm.r; // orm.r is metallic
+    float metallic = orm.b; // orm.b is metallic
 
     vec3 Lo = vec3(0.0);
     int lightCount = int(count.x);
@@ -109,9 +116,16 @@ void main() {
         Lo += (kD + specular) * radiance * NdotL;
     }
 
+    /// AMBIENT
     //vec3 ambient = vec3(0.03) * albedo.rgb;
-    vec3 ambient = vec3(0);
-
+    
+    vec3 kS = fresnel_schlick_roughness(max(dot(N, V), 0.0), F0, roughness);
+    vec3 kD = vec3(1.0) - kS;
+    vec3 irradiance = texture(irradianceMap, N).rgb;
+    vec3 diffuse = irradiance * albedo.rgb;
+    vec3 ambient = (kD * diffuse) * ao; 
+    
+    // final color
     vec3 color = ambient + Lo;
 
     // different debug modes

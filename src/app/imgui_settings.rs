@@ -82,9 +82,9 @@ impl ImguiSettings {
                 ui.slider("Exposure", 0.01, 10.0, &mut self.settings.exposure);
                 ui.separator();
                 ui.text("Light 1");
-                ui.slider("Position X", -50.0, 50.0, &mut self.settings.light1.position[0]);
-                ui.slider("Position Y", -50.0, 50.0, &mut self.settings.light1.position[1]);
-                ui.slider("Position Z", -50.0, 50.0, &mut self.settings.light1.position[2]);
+                ui.slider("Position X", -5.0, 5.0, &mut self.settings.light1.position[0]);
+                ui.slider("Position Y", -5.0, 5.0, &mut self.settings.light1.position[1]);
+                ui.slider("Position Z", -5.0, 5.0, &mut self.settings.light1.position[2]);
                 ui.slider("Range", 0.0, 100.0, &mut self.settings.light1.range);
                 ui.color_edit3("Color", &mut self.settings.light1.color);
                 ui.slider("Intensity", 0.0, 100.0, &mut self.settings.light1.intensity);

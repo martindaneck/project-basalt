@@ -60,7 +60,7 @@ impl Model {
                 let albedo = Texture2D::from_gltf(
                     pbr.base_color_texture()
                         .map(|info| &images[info.texture().source().index()]),
-                    false,
+                    true,
                 );
                 let normal = Texture2D::from_gltf(
                     material.normal_texture()
