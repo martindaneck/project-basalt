@@ -27,6 +27,7 @@ impl App {
     pub fn new(width: i32, height: i32, title: &str) -> Self {
         let mut glfw = glfw::init(glfw::fail_on_errors).unwrap();
 
+        glfw.window_hint(glfw::WindowHint::ContextRobustness(glfw::ContextRobustnessHint::NoRobustness));
         glfw.window_hint(glfw::WindowHint::ContextVersion(4, 6));
         glfw.window_hint(glfw::WindowHint::OpenGlProfile(
             glfw::OpenGlProfileHint::Core,

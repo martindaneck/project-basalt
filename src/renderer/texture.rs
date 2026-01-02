@@ -1,5 +1,4 @@
 use image::GenericImageView;
-use imgui::internal;
 
 #[derive(Clone)]
 pub struct Texture2D {
@@ -161,6 +160,43 @@ impl Texture2D {
         }
         self.width = width as i32;
         self.height = height as i32;
+    }
+
+    pub fn from_hdr_file(path: &str) -> Self {
+        let img = image::open(path)
+            .expect("Failed to open HDR image")
+            .flipv()
+            .to_rgb32f();
+
+        let (width, height) = img.dimensions();
+
+        let internal_format = gl::RGB16F;
+        let format = gl::RGB;
+
+        let mut id = 0;
+
+        unsafe {
+            gl::CreateTextures(gl::TEXTURE_2D, 1, &mut id);
+            gl::TextureStorage2D(id, 1, internal_format, width as i32, height as i32);
+            gl::TextureSubImage2D(
+                id,
+                0,
+                0,
+                0,
+                width as i32,
+                height as i32,
+                format,
+                gl::FLOAT,
+                img.as_ptr() as *const _,
+            );
+
+            gl::TextureParameteri(id, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
+            gl::TextureParameteri(id, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
+            gl::TextureParameteri(id, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
+            gl::TextureParameteri(id, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
+        }
+
+        Self { id, width: width as i32, height: height as i32, internal_format, format }
     }
 }
 

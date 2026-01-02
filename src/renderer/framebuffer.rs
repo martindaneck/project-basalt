@@ -1,7 +1,7 @@
 use super::{Texture2D};
 
 pub struct Framebuffer {
-    id: u32,
+    pub id: u32,
     pub width: u32,
     pub height: u32,
     pub color: Vec<Texture2D>,
@@ -27,14 +27,13 @@ impl Framebuffer {
     pub fn bind(&self) {
         unsafe {
             gl::BindFramebuffer(gl::FRAMEBUFFER, self.id);
+            gl::Viewport(0, 0, self.width as i32, self.height as i32);
         }
     }
 
     pub fn unbind(&self) {
         unsafe {
             gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
-            // reset viewport
-            gl::Viewport(0, 0, self.width as i32, self.height as i32);
         }
     }
 

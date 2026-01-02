@@ -2,29 +2,36 @@
 
 use glfw::{Action, Context, Key};
 use glam::{self, Mat4};
+use image::codecs::hdr;
 
 mod renderer;
-use image::codecs::hdr;
 use renderer::shader::Shader;
 use renderer::mesh::{Mesh, FullscreenQuad, LightCube};
 use renderer::model::Model;
 use renderer::ubo_manager::UboManager;
 use renderer::texture::Texture2D;
 use renderer::hdr_pass::HdrPass;
+use renderer::light::LightManager;
+use renderer::environmentmap::EnvironmentMap;
 mod app;
 use app::App;
 use app::imgui_settings::ImguiSettings;
 
-use crate::renderer::{hdr_pass, light};
+
 
 fn main() {
+    std::env::set_current_dir(env!("CARGO_MANIFEST_DIR")).expect("Failed to set CWD");
+
     let mut app = App::new(1920, 1080, "OpenGL Triangle"); // these numbers shouldn't really matter
 
     let mut ubo_manager = UboManager::new();
 
     let mut imgui_settings = ImguiSettings::new();
 
-    let mut light_manager = light::LightManager::new();
+    let mut light_manager = LightManager::new();
+
+    // environment map do
+    let mut environment_map = EnvironmentMap::new("assets/textures/fireplace_4k.hdr");
 
     // shaders
     let shader = Shader::from_files(
@@ -38,6 +45,10 @@ fn main() {
     let lightindicator_shader = Shader::from_files(
         "assets/shaders/default.vertex.glsl",
         "assets/shaders/lightindicator.fragment.glsl",
+    );
+    let skybox_shader = Shader::from_files(
+        "assets/shaders/skybox.vertex.glsl",
+        "assets/shaders/skybox.fragment.glsl",
     );
     // meshes
     let fullscreen_quad = FullscreenQuad::new();
@@ -54,6 +65,9 @@ fn main() {
     let mut hdr_pass = HdrPass::new(app.width as u32, app.height as u32);
 
     while app.is_running() {
+        //debug for renderdoc
+        
+
         app.begin_frame();
         //imgui 
         imgui_settings.begin_frame(&mut app.window);
@@ -93,13 +107,25 @@ fn main() {
             lightindicator_shader.set_mat4("model", &model_matrix);
             lightcube.draw();
         }
+
+        
+
+
+        // draw skybox
+        skybox_shader.bind();
+        environment_map.draw_skybox();
+
+
         hdr_pass.end();
 
         /// tonemap pass
         tonemap_shader.bind();
         hdr_pass.framebuffer.color[0].bind(0);
         fullscreen_quad.draw();
+
         
+
+
         imgui_settings.end_frame();
         app.end_frame();
     }

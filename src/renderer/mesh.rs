@@ -188,7 +188,7 @@ pub struct LightCube {
     index_count: i32,
 }
 
-impl LightCube {
+impl LightCube { // THIS HAS EVOLVED TO BE A GENERAL CUBE USED FOR MANY THINGS OTHER THAN LIGHT
     pub fn new() -> Self {
         let vertices: [f32; 24] = [
             // positions
