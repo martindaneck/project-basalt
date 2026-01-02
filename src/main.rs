@@ -31,7 +31,8 @@ fn main() {
     let mut light_manager = LightManager::new();
 
     // environment map do
-    let mut environment_map = EnvironmentMap::new("assets/textures/fireplace_4k.hdr");
+    let mut environment_map_fireplace = EnvironmentMap::new("assets/textures/fireplace_4k.hdr");
+    let mut environment_map_sky = EnvironmentMap::new("assets/textures/sky_4k.hdr");
 
     // shaders
     let shader = Shader::from_files(
@@ -60,18 +61,21 @@ fn main() {
     // models
     let amongus = Model::load("assets/models/amongusclay/scene.gltf");    
     // lights
-    light_manager.add_light([0.0; 3], 0.0, [0.0; 3], 0.0); // initialize with zeros, first light is reserved for imgui
+    //light_manager.add_light([0.0; 3], 0.0, [0.0; 3], 0.0); // initialize with zeros, first light is reserved for imgui
     // passes
     let mut hdr_pass = HdrPass::new(app.width as u32, app.height as u32);
 
     while app.is_running() {
-        //debug for renderdoc
-        
-
         app.begin_frame();
         //imgui 
         imgui_settings.begin_frame(&mut app.window);
-        imgui_settings.draw();
+        imgui_settings.draw(app.get_fps());
+        // update environment map
+        let environment_map = if imgui_settings.get_settings().2 == 0 {
+            &mut environment_map_fireplace
+        } else {
+            &mut environment_map_sky
+        };
         // update lights
         light_manager.set_light(0, imgui_settings.get_light());
         // update UBOs
@@ -114,7 +118,6 @@ fn main() {
         // draw skybox
         skybox_shader.bind();
         environment_map.draw_skybox();
-
 
         hdr_pass.end();
 

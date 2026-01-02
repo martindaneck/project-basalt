@@ -14,8 +14,8 @@ in vec3 FragPos;
 layout(std140, binding = 0) uniform Settings {
     float gamma;
     float exposure;
+    int environment;
     int rendermode;
-    float _padding;
 };
 layout(std140, binding = 1) uniform Camera {
     mat4 view;
@@ -109,7 +109,9 @@ void main() {
         Lo += (kD + specular) * radiance * NdotL;
     }
 
-    vec3 ambient = vec3(0.03) * albedo.rgb;
+    //vec3 ambient = vec3(0.03) * albedo.rgb;
+    vec3 ambient = vec3(0);
+
     vec3 color = ambient + Lo;
 
     // different debug modes

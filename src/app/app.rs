@@ -1,3 +1,4 @@
+use std::time::{Duration, Instant};
 use glfw::{Action, Context, Key};
 use glam::{Mat4, Vec3};
 
@@ -11,6 +12,9 @@ pub struct App {
     pub width: i32,
     pub height: i32,
     resized: bool,
+
+    fps_dts: Vec<f64>,
+    fps: u32,
 
     camera: Camera,
     last_mouse_x: f64,
@@ -65,7 +69,7 @@ impl App {
 
         let last_frame_time = glfw.get_time();
 
-        App { glfw, window, events, width, height, resized: false,
+        App { glfw, window, events, width, height, resized: false, fps_dts: Vec::new(), fps: 240, //initial value to show
             camera: Camera::new(glam::Vec3::new(0.0, 0.0, 3.0), glam::Vec3::Y, -90.0, 0.0),
             last_mouse_x: (width / 2) as f64,
             last_mouse_y: (height / 2) as f64,
@@ -85,7 +89,11 @@ impl App {
         let current_frame_time = self.glfw.get_time();
         let delta_time = current_frame_time - self.last_frame_time;
         self.last_frame_time = current_frame_time;
+        self.dt = delta_time;
 
+        // handle fps
+        self.update_fps();
+        
         // poll events
         self.glfw.poll_events();
 
@@ -180,6 +188,20 @@ impl App {
 
         // return both matrices and position
         (view, projection, camera_position)
+    }
+
+    pub fn update_fps(&mut self) {
+        self.fps_dts.push(self.dt);
+        let total_time: f64 = self.fps_dts.iter().sum();
+        if total_time >= 2.0 {
+            let frames = self.fps_dts.len();
+            self.fps = (frames as f64 / total_time).round() as u32;
+            self.fps_dts.clear();
+        }
+    }
+
+    pub fn get_fps(&self) -> u32 {
+        self.fps
     }
 
 }

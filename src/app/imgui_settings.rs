@@ -9,6 +9,7 @@ pub struct Settings {
     gamma: f32,
     exposure: f32,
     rendermode: u32,
+    environment: u32,
     light1: Light,
 }
 
@@ -44,6 +45,7 @@ impl ImguiSettings {
             gamma: 2.2,
             exposure: 1.0,
             rendermode: 0,
+            environment: 0,
             light1: Light::new([0.0, 3.0, 0.0], 10.0, [1.0, 1.0, 1.0], 1.0),
         };
 
@@ -67,12 +69,14 @@ impl ImguiSettings {
         io.mouse_down[1] = window.get_mouse_button(glfw::MouseButtonRight) == Action::Press;
     }
 
-    pub fn draw(&mut self) {
+    pub fn draw(&mut self, fps: u32) {
         let ui = self.imgui.frame();
 
         ui.window("Settings")
             .size([300.0, 800.0], Condition::FirstUseEver)
             .build(|| {
+                ui.text(&format!("FPS:  {}", fps));
+                ui.separator();
                 ui.text("HDR");
                 ui.slider("Gamma", 0.1, 4.0, &mut self.settings.gamma);
                 ui.slider("Exposure", 0.01, 10.0, &mut self.settings.exposure);
@@ -84,6 +88,10 @@ impl ImguiSettings {
                 ui.slider("Range", 0.0, 100.0, &mut self.settings.light1.range);
                 ui.color_edit3("Color", &mut self.settings.light1.color);
                 ui.slider("Intensity", 0.0, 100.0, &mut self.settings.light1.intensity);
+                ui.separator();
+                ui.text("Environment:");
+                ui.radio_button("Environment: Fireplace", &mut self.settings.environment, 0);
+                ui.radio_button("Environment: Sky", &mut self.settings.environment, 1);
                 ui.separator();
                 ui.text("Render Mode (Debug)");
                 ui.radio_button("Render Mode: Default", &mut self.settings.rendermode, 0);
@@ -100,8 +108,8 @@ impl ImguiSettings {
         self.renderer.render(&mut self.imgui);
     }
 
-    pub fn get_settings(&self) -> (f32, f32, u32) {
-        (self.settings.gamma, self.settings.exposure, self.settings.rendermode)
+    pub fn get_settings(&self) -> (f32, f32, u32, u32) {
+        (self.settings.gamma, self.settings.exposure, self.settings.environment, self.settings.rendermode)
     }
     pub fn get_light(&self) -> Light {
         self.settings.light1
