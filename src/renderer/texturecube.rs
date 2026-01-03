@@ -59,7 +59,7 @@ impl TextureCube {
         // Load the HDR equirectangular image
         let hdr_texture = Texture2D::from_hdr_file(path);
         // Create the cubemap
-        let cubemap = TextureCube::empty(size, gl::RGB16F, true);
+        let cubemap = TextureCube::empty(size, gl::RGB32F, true);
         // shader
         let shader = Shader::from_files(
             "assets/shaders/cubemap.vertex.glsl",
@@ -68,7 +68,7 @@ impl TextureCube {
         // cube
         let cube = LightCube::new();
         // temporary texture
-        let mut temp_texture = Texture2D::empty(size, size, gl::RGB16F, gl::NEAREST, gl::CLAMP_TO_EDGE);
+        let mut temp_texture = Texture2D::empty(size, size, gl::RGB32F, gl::NEAREST, gl::CLAMP_TO_EDGE);
         // Create the framebuffer
         let mut framebuffer = Framebuffer::new(size, size);
         framebuffer.add_color_attachment(temp_texture.clone());
@@ -134,5 +134,110 @@ impl TextureCube {
         }
         // Create a new TextureCube
         cubemap
+    }
+
+    pub fn delete(&self) {
+        unsafe {
+            gl::DeleteTextures(1, &self.id);
+        }
+    }
+
+    fn load_dds_raw(path: &str) -> (u32, u32, u32, u32, u32, Vec<u8>) {
+        use std::{fs::File, io::Read};
+
+        let mut file = File::open(path).expect("Failed to open DDS");
+
+        let mut header = [0u8; 128];
+        file.read_exact(&mut header).unwrap();
+
+        assert!(&header[0..4] == b"DDS ");
+
+        let height = u32::from_le_bytes(header[12..16].try_into().unwrap());
+        let width  = u32::from_le_bytes(header[16..20].try_into().unwrap());
+
+        let fourcc = &header[84..88];
+        assert!(fourcc == b"DX10", "Only DX10 DDS supported");
+
+        // Read DX10 header
+        let mut dx10 = [0u8; 20];
+        file.read_exact(&mut dx10).unwrap();
+
+        let dxgi_format = u32::from_le_bytes(dx10[0..4].try_into().unwrap());
+
+        let (internal, format, ty, bytes_per_pixel) = match dxgi_format {
+            10 => (gl::RGBA16F, gl::RGBA, gl::HALF_FLOAT, 8),   // DXGI_FORMAT_R16G16B16A16_FLOAT
+            2  => (gl::RGBA32F, gl::RGBA, gl::FLOAT, 16),      // DXGI_FORMAT_R32G32B32A32_FLOAT
+            _ => panic!("Unsupported DXGI format {}", dxgi_format),
+        };
+
+        let mut data = Vec::new();
+        file.read_to_end(&mut data).unwrap();
+
+        let expected = (width * height) as usize * bytes_per_pixel;
+        assert!(
+            data.len() == expected,
+            "DDS size mismatch: got {}, expected {}",
+            data.len(),
+            expected
+        );
+
+        (width, height, internal, format, ty, data)
+    }
+
+    pub fn from_dds(path: &str, mip_levels: u32) -> Self {
+        let faces = ["px", "nx", "py", "ny", "pz", "nz"];
+
+        // Load base mip to get size + format
+        let (size, _, internal_format, _, _, _) =
+            Self::load_dds_raw(&format!("{}/m0_px.dds", path));
+
+        let mut id = 0;
+        unsafe {
+            gl::CreateTextures(gl::TEXTURE_CUBE_MAP, 1, &mut id);
+            gl::TextureStorage2D(
+                id,
+                mip_levels as i32,
+                internal_format,
+                size as i32,
+                size as i32,
+            );
+        }
+
+        for mip in 0..mip_levels {
+            for (face_idx, face) in faces.iter().enumerate() {
+                let (w, h, _, format, ty, data) =
+                    Self::load_dds_raw(&format!("{}/m{}_{}.dds", path, mip, face));
+
+                unsafe {
+                    gl::TextureSubImage3D(
+                        id,
+                        mip as i32,
+                        0,
+                        0,
+                        face_idx as i32,
+                        w as i32,
+                        h as i32,
+                        1,
+                        format,
+                        ty,
+                        data.as_ptr() as *const _,
+                    );
+                }
+            }
+        }
+
+        unsafe {
+            gl::TextureParameteri(id, gl::TEXTURE_MIN_FILTER, gl::LINEAR_MIPMAP_LINEAR as i32);
+            gl::TextureParameteri(id, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
+            gl::TextureParameteri(id, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
+            gl::TextureParameteri(id, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
+            gl::TextureParameteri(id, gl::TEXTURE_WRAP_R, gl::CLAMP_TO_EDGE as i32);
+        }
+
+        Self {
+            id,
+            size,
+            internal_format,
+        }
     }
 }

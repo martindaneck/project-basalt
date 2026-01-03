@@ -21,6 +21,7 @@ impl Texture2D {
         let internal_format = match internal_format {
             "sRGB8_RGBA8" => gl::SRGB8_ALPHA8,
             "Linear_RGBA8" => gl::RGBA8,
+            "RGB32F" => gl::RGB32F,
             _ => panic!("Unsupported internal format"),
         };
 

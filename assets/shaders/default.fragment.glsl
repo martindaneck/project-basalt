@@ -77,6 +77,14 @@ vec3 fresnel_schlick_roughness(float cosTheta, vec3 F0, float roughness) { // fo
     return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
+vec3 rotateY90(vec3 v) {
+    return vec3(v.z, v.y, -v.x);
+}
+
+vec3 rotateYNegative90(vec3 v) {
+    return vec3(-v.z, v.y, v.x);
+}
+
 void main() {
     vec4 albedo = texture(albedo, TexCoords);
     vec4 normal_tangent_space = texture(normal, TexCoords);
@@ -125,12 +133,12 @@ void main() {
     vec3 kD = vec3(1.0) - kS;
     kD *= 1.0 - metallic;
 
-    vec3 irradiance = texture(irradianceMap, N).rgb;
+    vec3 irradiance = texture(irradianceMap, rotateY90(N)).rgb; // rotate because of some bullshit 
     vec3 diffuse = irradiance * albedo.rgb;
     
     vec3 R = reflect(-V, N);
-    const float MAX_REFLECTION_LOD = 4.0; // this value should be tweaked based on the environment map implementation
-    vec3 prefilteredColor = textureLod(prefilteredMap, R, roughness * MAX_REFLECTION_LOD).rgb;
+    const float MAX_REFLECTION_LOD = 6.0; // this value should be tweaked based on the environment map implementation
+    vec3 prefilteredColor = textureLod(prefilteredMap, rotateYNegative90(R), roughness * MAX_REFLECTION_LOD).rgb; // rotate because of some bullshit
     vec2 envBRDF = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
     vec3 specular = prefilteredColor * (kS * envBRDF.x + envBRDF.y);
 

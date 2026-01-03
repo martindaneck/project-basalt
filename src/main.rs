@@ -31,8 +31,9 @@ fn main() {
     let mut light_manager = LightManager::new();
 
     // environment map do
-    let mut environment_map_fireplace = EnvironmentMap::new("assets/textures/fireplace_4k.hdr");
-    let mut environment_map_sky = EnvironmentMap::new("assets/textures/sky_4k.hdr");
+    let mut environment_map_fireplace = EnvironmentMap::new("assets/ibl/fireplace", 7);
+    let mut environment_map_sky = EnvironmentMap::new("assets/ibl/sky", 7);
+    let mut environment_map_meadow = EnvironmentMap::new("assets/ibl/meadow", 7);
 
     // shaders
     let shader = Shader::from_files(
@@ -73,8 +74,10 @@ fn main() {
         // update environment map
         let environment_map = if imgui_settings.get_settings().2 == 0 {
             &mut environment_map_fireplace
-        } else {
+        } else if imgui_settings.get_settings().2 == 1 {
             &mut environment_map_sky
+        } else {
+            &mut environment_map_meadow
         };
         // update lights
         light_manager.set_light(0, imgui_settings.get_light());
