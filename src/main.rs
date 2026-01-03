@@ -40,7 +40,7 @@ fn main() {
         "assets/shaders/default.fragment.glsl",
     );
     let tonemap_shader = Shader::from_files(
-        "assets/shaders/tonemap.vertex.glsl",
+        "assets/shaders/quad.vertex.glsl",
         "assets/shaders/tonemap.fragment.glsl",
     );
     let lightindicator_shader = Shader::from_files(
@@ -87,8 +87,10 @@ fn main() {
         /// HDR pass
         hdr_pass.begin(app.width as u32, app.height as u32);
         shader.bind();
-        // bind irradiance map
+        // bind environment maps
         environment_map.bind_irradiance(3);
+        environment_map.bind_prefiltered(4);
+        environment_map.bind_brdf_lut(5);
 
         // triangle
         let model_matrix = Mat4::from_translation(glam::vec3(0.0, 0.0, -2.0));
@@ -127,8 +129,6 @@ fn main() {
         tonemap_shader.bind();
         hdr_pass.framebuffer.color[0].bind(0);
         fullscreen_quad.draw();
-
-        
 
 
         imgui_settings.end_frame();

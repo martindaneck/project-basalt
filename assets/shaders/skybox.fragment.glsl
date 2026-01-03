@@ -21,5 +21,8 @@ uniform samplerCube environmentMap;
 
 void main() {
     vec3 color = texture(environmentMap, normalize(vDir)).rgb;
+    // DEBUG
+    //vec3 color = textureLod(environmentMap, normalize(vDir), 1.0).rgb;
+
     FragColor = vec4(color, 1.0);
 }

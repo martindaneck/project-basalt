@@ -33,6 +33,8 @@ layout(binding = 1) uniform sampler2D normal;
 layout(binding = 2) uniform sampler2D orm;
 
 layout(binding = 3) uniform samplerCube irradianceMap;
+layout(binding = 4) uniform samplerCube prefilteredMap;
+layout(binding = 5) uniform sampler2D brdfLUT;
 
 // PBR helper functions
 vec3 fresnel_schlick(float cosTheta, vec3 F0) {
@@ -117,14 +119,23 @@ void main() {
     }
 
     /// AMBIENT
-    //vec3 ambient = vec3(0.03) * albedo.rgb;
-    
-    vec3 kS = fresnel_schlick_roughness(max(dot(N, V), 0.0), F0, roughness);
+    vec3 F = fresnel_schlick_roughness(max(dot(N, V), 0.0), F0, roughness);
+
+    vec3 kS = F;
     vec3 kD = vec3(1.0) - kS;
+    kD *= 1.0 - metallic;
+
     vec3 irradiance = texture(irradianceMap, N).rgb;
     vec3 diffuse = irradiance * albedo.rgb;
-    vec3 ambient = (kD * diffuse) * ao; 
     
+    vec3 R = reflect(-V, N);
+    const float MAX_REFLECTION_LOD = 4.0; // this value should be tweaked based on the environment map implementation
+    vec3 prefilteredColor = textureLod(prefilteredMap, R, roughness * MAX_REFLECTION_LOD).rgb;
+    vec2 envBRDF = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+    vec3 specular = prefilteredColor * (kS * envBRDF.x + envBRDF.y);
+
+    vec3 ambient = (kD * diffuse + specular) * ao;
+
     // final color
     vec3 color = ambient + Lo;
 

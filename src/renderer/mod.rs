@@ -16,7 +16,7 @@ pub use buffer::Buffer;
 pub use vao::VertexArray;
 pub use camera::{Camera, CameraMovement};
 pub use texture::{Texture2D, DefaultTextures};
-pub use mesh::{Mesh, LightCube};
+pub use mesh::{Mesh, LightCube, FullscreenQuad};
 pub use light::Light;
 pub use shader::Shader;
 pub use framebuffer::Framebuffer;

@@ -1,6 +1,6 @@
 #version 460 core 
 
-in vec2 TexCoord;
+in vec2 TexCoords;
 
 out vec4 FragColor;
 
@@ -14,7 +14,7 @@ layout(std140, binding = 0) uniform Settings {
 uniform sampler2D hdrTexture;
 
 void main() {
-    vec3 hdrColor = texture(hdrTexture, TexCoord).rgb;
+    vec3 hdrColor = texture(hdrTexture, TexCoords).rgb;
     // Apply gamma + exposure tonemapping
     vec3 mapped = vec3(1.0) - exp(-hdrColor * exposure);
     // gamma correction

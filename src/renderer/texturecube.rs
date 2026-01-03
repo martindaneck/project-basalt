@@ -37,6 +37,10 @@ impl TextureCube {
             gl::TextureParameteri(id, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
             gl::TextureParameteri(id, gl::TEXTURE_WRAP_R, gl::CLAMP_TO_EDGE as i32);
 
+            if mipmapped {
+                gl::GenerateTextureMipmap(id);
+            }
+
             Self {
                 id,
                 size,
@@ -55,7 +59,7 @@ impl TextureCube {
         // Load the HDR equirectangular image
         let hdr_texture = Texture2D::from_hdr_file(path);
         // Create the cubemap
-        let cubemap = TextureCube::empty(size, gl::RGB16F, false);
+        let cubemap = TextureCube::empty(size, gl::RGB16F, true);
         // shader
         let shader = Shader::from_files(
             "assets/shaders/cubemap.vertex.glsl",
@@ -125,6 +129,8 @@ impl TextureCube {
         }
         unsafe { // re-enable culling and depth test
             gl::Enable(gl::CULL_FACE);
+            // generate mipmaps
+            gl::GenerateTextureMipmap(cubemap.id);
         }
         // Create a new TextureCube
         cubemap

@@ -2,7 +2,7 @@ use std::time::{Duration, Instant};
 use glfw::{Action, Context, Key};
 use glam::{Mat4, Vec3};
 
-use crate::renderer::{Camera, CameraMovement, shader};
+use crate::renderer::{Camera, CameraMovement, Shader};
 
 pub struct App {
     glfw: glfw::Glfw,
@@ -65,6 +65,7 @@ impl App {
             // cull faces
             gl::Enable(gl::CULL_FACE);
             gl::CullFace(gl::BACK);
+            gl::Enable(gl::TEXTURE_CUBE_MAP_SEAMLESS);
         }
 
         let last_frame_time = glfw.get_time();
