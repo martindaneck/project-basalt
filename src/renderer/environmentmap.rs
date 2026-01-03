@@ -22,7 +22,7 @@ impl EnvironmentMap {
 
         // Load environment maps
         let cube = LightCube::new();
-        let environment = TextureCube::from_hdr_equirectangular(&environment_path, 4096);
+        let environment = TextureCube::from_hdr_equirectangular(&environment_path, 2048);
         let irradiance = TextureCube::from_hdr_equirectangular(&irradiance_path, 32);
         let prefiltered = TextureCube::from_dds(&prefiltered_path, 7);
         let brdf_lut = Texture2D::from_file(&brdf_lut_path, "RGB32F");

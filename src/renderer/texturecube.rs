@@ -59,7 +59,7 @@ impl TextureCube {
         // Load the HDR equirectangular image
         let hdr_texture = Texture2D::from_hdr_file(path);
         // Create the cubemap
-        let cubemap = TextureCube::empty(size, gl::RGB32F, true);
+        let cubemap = TextureCube::empty(size, gl::RGB16F, true);
         // shader
         let shader = Shader::from_files(
             "assets/shaders/cubemap.vertex.glsl",
@@ -68,7 +68,7 @@ impl TextureCube {
         // cube
         let cube = LightCube::new();
         // temporary texture
-        let mut temp_texture = Texture2D::empty(size, size, gl::RGB32F, gl::NEAREST, gl::CLAMP_TO_EDGE);
+        let mut temp_texture = Texture2D::empty(size, size, gl::RGB16F, gl::NEAREST, gl::CLAMP_TO_EDGE);
         // Create the framebuffer
         let mut framebuffer = Framebuffer::new(size, size);
         framebuffer.add_color_attachment(temp_texture.clone());
