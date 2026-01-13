@@ -1,3 +1,4 @@
+use glam::Vec3;
 use image::GenericImageView;
 
 #[derive(Clone)]
@@ -18,7 +19,7 @@ impl Texture2D {
 
         let (width, height) = img.dimensions();
 
-        let internal_format = match internal_format {
+        let internal_format = match internal_format { // ts lowkey stupid and i should and could just be passing the enum
             "sRGB8_RGBA8" => gl::SRGB8_ALPHA8,
             "Linear_RGBA8" => gl::RGBA8,
             "RGB32F" => gl::RGB32F,
@@ -195,6 +196,33 @@ impl Texture2D {
             gl::TextureParameteri(id, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
             gl::TextureParameteri(id, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
             gl::TextureParameteri(id, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
+        }
+
+        Self { id, width: width as i32, height: height as i32, internal_format, format }
+    }
+
+    pub fn from_bytes(width: u32, height: u32, internal_format: u32, format: u32, filter: u32, wrap_mode: u32, data: &Vec<Vec3>) -> Self {
+        let mut id = 0;
+
+        unsafe {
+            gl::CreateTextures(gl::TEXTURE_2D, 1, &mut id);
+            gl::TextureStorage2D(id, 1, internal_format, width as i32, height as i32);
+            gl::TextureSubImage2D(
+                id,
+                0,
+                0,
+                0,
+                width as i32,
+                height as i32,
+                format,
+                gl::UNSIGNED_BYTE,
+                data.as_ptr() as *const _,
+            );
+
+            gl::TextureParameteri(id, gl::TEXTURE_WRAP_S, wrap_mode as i32);
+            gl::TextureParameteri(id, gl::TEXTURE_WRAP_T, wrap_mode as i32);
+            gl::TextureParameteri(id, gl::TEXTURE_MIN_FILTER, filter as i32);
+            gl::TextureParameteri(id, gl::TEXTURE_MAG_FILTER, filter as i32);
         }
 
         Self { id, width: width as i32, height: height as i32, internal_format, format }

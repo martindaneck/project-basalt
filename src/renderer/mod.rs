@@ -11,6 +11,7 @@ pub mod hdr_pass;
 pub mod light;
 pub mod texturecube;
 pub mod environmentmap;
+pub mod ssao_pass;
 
 pub use buffer::Buffer;
 pub use vao::VertexArray;

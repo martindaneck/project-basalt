@@ -12,6 +12,9 @@ pub struct SettingsUniforms {
     exposure: f32,
     environment: u32,
     rendermode: u32,
+    ssao_radius: f32,
+    ssao_bias: f32,
+    _padding: [f32; 2],
 }
 
 #[repr(C)]
@@ -53,6 +56,9 @@ impl UboManager {
             exposure: 1.0,
             environment: 0,
             rendermode: 0,
+            ssao_radius: 0.5,
+            ssao_bias: 0.025,
+            _padding: [0.0; 2],
         };
         let settings_ubo = Buffer::new();
         settings_ubo.allocate::<SettingsUniforms>(std::mem::size_of::<SettingsUniforms>(), gl::DYNAMIC_DRAW);
@@ -99,14 +105,16 @@ impl UboManager {
     // Settings
     pub fn set_settings(
         &mut self, 
-        (gamma, exposure, environment, rendermode): (
-            f32, f32, u32, u32
+        (gamma, exposure, environment, rendermode, ssao_radius, ssao_bias): (
+            f32, f32, u32, u32, f32, f32
         )
     ) {
         self.settings.gamma = gamma;
         self.settings.exposure = exposure;
         self.settings.environment = environment;
         self.settings.rendermode = rendermode;
+        self.settings.ssao_radius = ssao_radius;
+        self.settings.ssao_bias = ssao_bias;
         self.settings_dirty = true;
     }
 

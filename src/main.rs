@@ -13,14 +13,15 @@ use renderer::texture::Texture2D;
 use renderer::hdr_pass::HdrPass;
 use renderer::light::LightManager;
 use renderer::environmentmap::EnvironmentMap;
+use renderer::ssao_pass::SSAOPass;
 mod app;
 use app::App;
 use app::imgui_settings::ImguiSettings;
 
-
+use crate::renderer::shader;
 
 fn main() {
-    std::env::set_current_dir(env!("CARGO_MANIFEST_DIR")).expect("Failed to set CWD");
+    //std::env::set_current_dir(env!("CARGO_MANIFEST_DIR")).expect("Failed to set CWD"); // include this line only for a release build for RenderDoc 
 
     let mut app = App::new(1920, 1080, "OpenGL Triangle"); // these numbers shouldn't really matter
 
@@ -36,6 +37,10 @@ fn main() {
     let mut environment_map_meadow = EnvironmentMap::new("assets/ibl/meadow", 7);
 
     // shaders
+    let pregeometry_shader = Shader::from_files(
+        "assets/shaders/default.vertex.glsl",
+        "assets/shaders/pregeometry.fragment.glsl",
+    );
     let shader = Shader::from_files(
         "assets/shaders/default.vertex.glsl",
         "assets/shaders/default.fragment.glsl",
@@ -65,6 +70,8 @@ fn main() {
     light_manager.add_light([0.0; 3], 0.0, [0.0; 3], 0.0); // initialize with zeros, first light is reserved for imgui
     // passes
     let mut hdr_pass = HdrPass::new(app.width as u32, app.height as u32);
+    let mut pregeometry_pass = HdrPass::new(app.width as u32, app.height as u32); // has the exact same structure as hdr pass, no need for a new struct
+    let mut ssao_pass = SSAOPass::new(app.width as u32, app.height as u32);
 
     while app.is_running() {
         app.begin_frame();
@@ -86,20 +93,46 @@ fn main() {
         ubo_manager.set_camera(app.get_view_projection_position());
         ubo_manager.set_lights(light_manager.get_lights());
         ubo_manager.update();
-        
+
+        /// Pre-geometry pass.
+        pregeometry_pass.begin(app.width as u32, app.height as u32);
+        pregeometry_shader.bind();
+        // render objets
+        // triangle
+        let model_matrix = Mat4::from_translation(glam::vec3(0.0, 0.0, -2.0));
+        pregeometry_shader.set_mat4("model", &model_matrix);
+        triangle.draw();
+        // amongus
+        let model_matrix = Mat4::from_rotation_translation(
+            glam::Quat::from_axis_angle(glam::Vec3::X, -90.0_f32.to_radians()),
+            glam::vec3(-1.0, 0.0, 0.0),
+        );
+        pregeometry_shader.set_mat4("model", &model_matrix);
+        amongus.draw();
+        /// SSAO pass
+        ssao_pass.draw(
+            pregeometry_pass.framebuffer.color[0].clone(), // normal texture
+            pregeometry_pass.framebuffer.depth.clone().unwrap(),    // depth texture
+        );
+
         /// HDR pass
         hdr_pass.begin(app.width as u32, app.height as u32);
-        shader.bind();
         // bind environment maps
         environment_map.bind_irradiance(3);
         environment_map.bind_prefiltered(4);
         environment_map.bind_brdf_lut(5);
+        // ssao
+        ssao_pass.ssao_blur_framebuffer.color[0].bind(6);
+
+        // render objets
+        shader.bind();
+        shader.set_int("screen_width", app.width as i32);
+        shader.set_int("screen_height", app.height as i32);
 
         // triangle
         let model_matrix = Mat4::from_translation(glam::vec3(0.0, 0.0, -2.0));
         shader.set_mat4("model", &model_matrix);
         triangle.draw();
-
         // amongus
         let model_matrix = Mat4::from_rotation_translation(
             glam::Quat::from_axis_angle(glam::Vec3::X, -90.0_f32.to_radians()),
@@ -131,6 +164,9 @@ fn main() {
         /// tonemap pass
         tonemap_shader.bind();
         hdr_pass.framebuffer.color[0].bind(0);
+        //debug
+        //ssao_pass.ssao_blur_framebuffer.color[0].bind(0);
+        //pregeometry_pass.framebuffer.color[0].bind(0);
         fullscreen_quad.draw();
 
 

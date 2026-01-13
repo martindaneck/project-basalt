@@ -7,6 +7,7 @@ struct Light {
 
 out vec4 FragColor;
 
+
 in vec2 TexCoords;
 in mat3 TBN;
 in vec3 FragPos;
@@ -16,6 +17,10 @@ layout(std140, binding = 0) uniform Settings {
     float exposure;
     int environment;
     int rendermode;
+    float ssao_radius;
+    float ssao_bias;
+    float _padding3;
+    float _padding4;
 };
 layout(std140, binding = 1) uniform Camera {
     mat4 view;
@@ -35,6 +40,10 @@ layout(binding = 2) uniform sampler2D orm;
 layout(binding = 3) uniform samplerCube irradianceMap;
 layout(binding = 4) uniform samplerCube prefilteredMap;
 layout(binding = 5) uniform sampler2D brdfLUT;
+
+uniform int screen_width;
+uniform int screen_height;
+layout(binding = 6) uniform sampler2D ssaoTexture;
 
 // PBR helper functions
 vec3 fresnel_schlick(float cosTheta, vec3 F0) {
@@ -91,6 +100,9 @@ void main() {
     vec4 orm = texture(orm, TexCoords);
     vec3 normal = normalize(TBN * (normal_tangent_space.rgb * 2.0 - 1.0));
 
+    vec2 screenUV = gl_FragCoord.xy / vec2(screen_width, screen_height);
+    float ssao = texture(ssaoTexture, screenUV).r;
+
     // PBR 
     vec3 N = normal;
     vec3 V = normalize(camera_position - FragPos);
@@ -143,12 +155,13 @@ void main() {
     vec3 specular = prefilteredColor * (kS * envBRDF.x + envBRDF.y);
 
     vec3 ambient = (kD * diffuse + specular) * ao;
+    ambient *= ssao;
 
     // final color
     vec3 color = ambient + Lo;
 
     // different debug modes
-    if (rendermode == 0) { // default
+    if (rendermode ==  0) { // default
         FragColor = vec4(color, 1.0);
     } else if (rendermode == 1) { // albedo map
         FragColor = vec4(albedo.rgb, 1.0);
@@ -162,5 +175,7 @@ void main() {
         FragColor = vec4(TBN[0], 1.0);
     } else if (rendermode == 6) { // final normal
         FragColor = vec4(normal.rgb, 1.0);
+    } else if (rendermode == 7) { // SSAO
+        FragColor = vec4(ssao, ssao, ssao, 1.0);
     }
 }

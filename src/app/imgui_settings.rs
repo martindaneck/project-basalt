@@ -10,6 +10,8 @@ pub struct Settings {
     exposure: f32,
     rendermode: u32,
     environment: u32,
+    ssao_radius: f32,
+    ssao_bias: f32,
     light1: Light,
 }
 
@@ -46,6 +48,8 @@ impl ImguiSettings {
             exposure: 1.0,
             rendermode: 0,
             environment: 0,
+            ssao_radius: 0.271,
+            ssao_bias: 0.015,
             light1: Light::new([0.0, 3.0, 0.0], 10.0, [1.0, 1.0, 1.0], 1.0),
         };
 
@@ -81,6 +85,10 @@ impl ImguiSettings {
                 ui.slider("Gamma", 0.1, 4.0, &mut self.settings.gamma);
                 ui.slider("Exposure", 0.01, 10.0, &mut self.settings.exposure);
                 ui.separator();
+                ui.text("SSAO");
+                ui.slider("Radius", 0.0, 1.0, &mut self.settings.ssao_radius);
+                ui.slider("Bias", 0.0, 0.1, &mut self.settings.ssao_bias);
+                ui.separator();
                 ui.text("Light 1");
                 ui.slider("Position X", -5.0, 5.0, &mut self.settings.light1.position[0]);
                 ui.slider("Position Y", -5.0, 5.0, &mut self.settings.light1.position[1]);
@@ -102,6 +110,7 @@ impl ImguiSettings {
                 ui.radio_button("Render Mode: Vertex Normal", &mut self.settings.rendermode, 4);
                 ui.radio_button("Render Mode: Vertex Tangent", &mut self.settings.rendermode, 5);
                 ui.radio_button("Render Mode: Final Normal", &mut self.settings.rendermode, 6);
+                ui.radio_button("Render Mode: SSAO Map", &mut self.settings.rendermode, 7);
             });
     }
 
@@ -109,8 +118,8 @@ impl ImguiSettings {
         self.renderer.render(&mut self.imgui);
     }
 
-    pub fn get_settings(&self) -> (f32, f32, u32, u32) {
-        (self.settings.gamma, self.settings.exposure, self.settings.environment, self.settings.rendermode)
+    pub fn get_settings(&self) -> (f32, f32, u32, u32, f32, f32) {
+        (self.settings.gamma, self.settings.exposure, self.settings.environment, self.settings.rendermode, self.settings.ssao_radius, self.settings.ssao_bias)
     }
     pub fn get_light(&self) -> Light {
         self.settings.light1

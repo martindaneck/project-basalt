@@ -85,6 +85,18 @@ impl Shader {
         }
     }
 
+    pub fn set_vec2(&self, name: &str, vec: &glam::Vec2) {
+        let cname = CString::new(name).expect("Failed to convert to CString");
+        unsafe {
+            let location = gl::GetUniformLocation(self.id, cname.as_ptr());
+            if location == -1 {
+                eprintln!("Warning: uniform '{}' not found in shader", name);
+            } else {
+                gl::Uniform2fv(location, 1, vec.to_array().as_ptr());
+            }
+        }
+    }
+
     pub fn set_vec3(&self, name: &str, vec: &glam::Vec3) {
         let cname = CString::new(name).expect("Failed to convert to CString");
         unsafe {
@@ -93,6 +105,18 @@ impl Shader {
                 eprintln!("Warning: uniform '{}' not found in shader", name);
             } else {
                 gl::Uniform3fv(location, 1, vec.to_array().as_ptr());
+            }
+        }
+    }
+
+    pub fn set_vec3c(&self, name: &str, count: i32, values: &[glam::Vec3]) {
+        let cname = CString::new(name).expect("Failed to convert to CString");
+        unsafe {
+            let location = gl::GetUniformLocation(self.id, cname.as_ptr());
+            if location == -1 {
+                eprintln!("Warning: uniform '{}' not found in shader", name);
+            } else {
+                gl::Uniform3fv(location, count, values.as_ptr() as *const _);
             }
         }
     }
