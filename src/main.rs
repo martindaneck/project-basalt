@@ -152,15 +152,15 @@ fn main() {
             lightcube.draw();
         }
 
-        
 
+    
 
         // draw skybox
         skybox_shader.bind();
         environment_map.draw_skybox();
 
         hdr_pass.end();
-
+        
         /// tonemap pass
         tonemap_shader.bind();
         hdr_pass.framebuffer.color[0].bind(0);

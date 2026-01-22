@@ -12,6 +12,7 @@ pub struct Settings {
     environment: u32,
     ssao_radius: f32,
     ssao_bias: f32,
+    tonemap: bool,
     light1: Light,
 }
 
@@ -50,6 +51,7 @@ impl ImguiSettings {
             environment: 0,
             ssao_radius: 0.271,
             ssao_bias: 0.015,
+            tonemap: true,
             light1: Light::new([0.0, 3.0, 0.0], 10.0, [1.0, 1.0, 1.0], 1.0),
         };
 
@@ -82,6 +84,7 @@ impl ImguiSettings {
                 ui.text(&format!("FPS:  {}", fps));
                 ui.separator();
                 ui.text("HDR");
+                ui.checkbox("Gamma Correct and Tonemap", &mut self.settings.tonemap);
                 ui.slider("Gamma", 0.1, 4.0, &mut self.settings.gamma);
                 ui.slider("Exposure", 0.01, 10.0, &mut self.settings.exposure);
                 ui.separator();
@@ -118,8 +121,8 @@ impl ImguiSettings {
         self.renderer.render(&mut self.imgui);
     }
 
-    pub fn get_settings(&self) -> (f32, f32, u32, u32, f32, f32) {
-        (self.settings.gamma, self.settings.exposure, self.settings.environment, self.settings.rendermode, self.settings.ssao_radius, self.settings.ssao_bias)
+    pub fn get_settings(&self) -> (f32, f32, u32, u32, f32, f32, bool) {
+        (self.settings.gamma, self.settings.exposure, self.settings.environment, self.settings.rendermode, self.settings.ssao_radius, self.settings.ssao_bias, self.settings.tonemap)
     }
     pub fn get_light(&self) -> Light {
         self.settings.light1

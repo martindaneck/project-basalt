@@ -19,7 +19,7 @@ layout(std140, binding = 0) uniform Settings {
     int rendermode;
     float ssao_radius;
     float ssao_bias;
-    float _padding3;
+    int tonemap; // 0: off, 1: on
     float _padding4;
 };
 layout(std140, binding = 1) uniform Camera {
