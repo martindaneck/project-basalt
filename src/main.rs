@@ -5,23 +5,12 @@ use glam::{self, Mat4};
 use image::codecs::hdr;
 
 mod renderer;
-use renderer::shader::Shader;
-use renderer::mesh::{Mesh, FullscreenQuad, LightCube};
-use renderer::model::Model;
-use renderer::ubo_manager::UboManager;
-use renderer::texture::Texture2D;
-use renderer::hdr_pass::HdrPass;
-use renderer::light::LightManager;
-use renderer::environmentmap::EnvironmentMap;
-use renderer::ssao_pass::SSAOPass;
+use renderer::*;
 mod app;
-use app::App;
-use app::imgui_settings::ImguiSettings;
-
-use crate::renderer::shader;
+use app::*;
 
 fn main() {
-    //std::env::set_current_dir(env!("CARGO_MANIFEST_DIR")).expect("Failed to set CWD"); // include this line only for a release build for RenderDoc 
+    //std::env::set_current_dir(env!("CARGO_MANIFEST_DIR")).expect("Failed to set CWD"); // include this line only for a release build for RenderDoc to work
 
     let mut app = App::new(1920, 1080, "OpenGL Triangle"); // these numbers shouldn't really matter
 
@@ -57,6 +46,7 @@ fn main() {
         "assets/shaders/skybox.vertex.glsl",
         "assets/shaders/skybox.fragment.glsl",
     );
+
     // meshes
     let fullscreen_quad = FullscreenQuad::new();
 
@@ -64,10 +54,13 @@ fn main() {
                                   Some("assets/textures/brickwall_texture/normal.png"),
                                   Some("assets/textures/brickwall_texture/orm.png"));
     let lightcube = LightCube::new();
+
     // models
-    let amongus = Model::load("assets/models/amongusclay/scene.gltf");    
+    let amongus = Model::load("assets/models/amongusclay/scene.gltf");  
+
     // lights
     light_manager.add_light([0.0; 3], 0.0, [0.0; 3], 0.0); // initialize with zeros, first light is reserved for imgui
+
     // passes
     let mut hdr_pass = HdrPass::new(app.width as u32, app.height as u32);
     let mut pregeometry_pass = HdrPass::new(app.width as u32, app.height as u32); // has the exact same structure as hdr pass, no need for a new struct
@@ -75,9 +68,11 @@ fn main() {
 
     while app.is_running() {
         app.begin_frame();
+
         //imgui 
         imgui_settings.begin_frame(&mut app.window);
         imgui_settings.draw(app.get_fps());
+
         // update environment map
         let environment_map = if imgui_settings.get_settings().2 == 0 {
             &mut environment_map_fireplace
@@ -86,17 +81,21 @@ fn main() {
         } else {
             &mut environment_map_meadow
         };
+
         // update lights
         light_manager.set_light(0, imgui_settings.get_light());
+
         // update UBOs
         ubo_manager.set_settings(imgui_settings.get_settings());
         ubo_manager.set_camera(app.get_view_projection_position());
         ubo_manager.set_lights(light_manager.get_lights());
         ubo_manager.update();
 
+
         /// Pre-geometry pass.
         pregeometry_pass.begin(app.width as u32, app.height as u32);
         pregeometry_shader.bind();
+
         // render objets
         // triangle
         let model_matrix = Mat4::from_translation(glam::vec3(0.0, 0.0, -2.0));
@@ -109,11 +108,14 @@ fn main() {
         );
         pregeometry_shader.set_mat4("model", &model_matrix);
         amongus.draw();
+
+
         /// SSAO pass
         ssao_pass.draw(
             pregeometry_pass.framebuffer.color[0].clone(), // normal texture
             pregeometry_pass.framebuffer.depth.clone().unwrap(),    // depth texture
         );
+
 
         /// HDR pass
         hdr_pass.begin(app.width as u32, app.height as u32);
@@ -133,6 +135,7 @@ fn main() {
         let model_matrix = Mat4::from_translation(glam::vec3(0.0, 0.0, -2.0));
         shader.set_mat4("model", &model_matrix);
         triangle.draw();
+
         // amongus
         let model_matrix = Mat4::from_rotation_translation(
             glam::Quat::from_axis_angle(glam::Vec3::X, -90.0_f32.to_radians()),
@@ -152,21 +155,16 @@ fn main() {
             lightcube.draw();
         }
 
-
-    
-
         // draw skybox
         skybox_shader.bind();
         environment_map.draw_skybox();
 
         hdr_pass.end();
+
         
         /// tonemap pass
         tonemap_shader.bind();
         hdr_pass.framebuffer.color[0].bind(0);
-        //debug
-        //ssao_pass.ssao_blur_framebuffer.color[0].bind(0);
-        //pregeometry_pass.framebuffer.color[0].bind(0);
         fullscreen_quad.draw();
 
 
