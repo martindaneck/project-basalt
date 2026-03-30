@@ -7,3 +7,4 @@ It's a continuous work in process, it's in a usable and clean state now however 
 Here's a list of features I'd like to have implemented:
 - MSAA
 - Bloom
+- Shadow Mapping

@@ -11,6 +11,17 @@ layout(std140, binding = 2) uniform Lights {
     vec4 count; // count.x is the number of lights, rest is padding
     Light lights[1];
 };
+layout(std140, binding = 0) uniform Settings {
+    float gamma;
+    float exposure;
+    int environment;
+    int rendermode;
+    float ssao_radius;
+    float ssao_bias;
+    int tonemap; // 0: off, 1: on
+    float _padding4;
+};
+
 
 void main() {
     // assume we are drawing only the first light as an indicator
@@ -18,6 +29,10 @@ void main() {
     int index = 0;
     Light light = lights[index];
     vec3 light_color = light.color_intensity.xyz;
-    float intensity = light.color_intensity.w;
-    FragColor = vec4(light_color * intensity, 1.0);  
+    vec3 color = light_color;
+
+    // "inverse-tonemap" so the lightindicators look normal when tonemapped later
+    color = -log(1.0 - color) / exposure;
+
+    FragColor = vec4(color, 1.0);  
 }
