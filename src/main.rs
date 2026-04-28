@@ -70,8 +70,11 @@ fn main() {
         app.begin_frame();
 
         //imgui 
-        imgui_settings.begin_frame(&mut app.window);
-        imgui_settings.draw(app.get_fps());
+        
+        if app.show_imgui { 
+            imgui_settings.begin_frame(&mut app.window);
+            imgui_settings.draw(app.get_fps());
+        }
 
         // update environment map
         let environment_map = if imgui_settings.get_settings().2 == 0 {
@@ -167,8 +170,11 @@ fn main() {
         hdr_pass.framebuffer.color[0].bind(0);
         fullscreen_quad.draw();
 
+        if app.show_imgui {
+            imgui_settings.end_frame();    
+        }
+        
 
-        imgui_settings.end_frame();
         app.end_frame();
     }
 }

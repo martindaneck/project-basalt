@@ -8,7 +8,7 @@ Features:
 - OpenGL 4.6
 - ImGUI
 - gltf model loading
-- HDR lighting
+- PBR lighting
 - IBL
 - SSAO
 

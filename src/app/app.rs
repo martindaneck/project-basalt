@@ -24,6 +24,7 @@ pub struct App {
     dt: f64,
 
     mouse_locked: bool,
+    pub show_imgui: bool,
 }
 
 impl App {
@@ -70,7 +71,7 @@ impl App {
 
         let last_frame_time = glfw.get_time();
 
-        App { glfw, window, events, width, height, resized: false, fps_dts: Vec::new(), fps: 240, //initial value to show
+        App { glfw, window, events, width, height, resized: false, fps_dts: Vec::new(), fps: 240, //initial value to show (arbitrary)
             camera: Camera::new(glam::Vec3::new(0.0, 0.0, 3.0), glam::Vec3::Y, -90.0, 0.0),
             last_mouse_x: (width / 2) as f64,
             last_mouse_y: (height / 2) as f64,
@@ -78,6 +79,7 @@ impl App {
             last_frame_time,
             dt: 0.0,
             mouse_locked: true,
+            show_imgui: true,
         }
     }
 
@@ -126,6 +128,10 @@ impl App {
                     if !self.mouse_locked {
                         self.first_mouse = true;
                     }
+                }
+
+                glfw::WindowEvent::Key(Key::F3, _, Action::Press, _) => {
+                    self.show_imgui = !self.show_imgui;
                 }
 
                 _ => {}

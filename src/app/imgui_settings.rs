@@ -81,6 +81,9 @@ impl ImguiSettings {
         ui.window("Settings")
             .size([300.0, 800.0], Condition::FirstUseEver)
             .build(|| {
+                ui.text("Press \'F3\' to toggle ImGui");
+                ui.text("Press \'E\' to lock/unlock mouse");
+                ui.text("Press \'ESC\' to exit app");
                 ui.text(&format!("FPS:  {}", fps));
                 ui.separator();
                 ui.text("HDR");
